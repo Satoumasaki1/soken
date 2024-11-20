@@ -31,10 +31,13 @@ public class GameManager : MonoBehaviour
 
     public enum ResourceType { OkiaMi, Benthos, Plankton, FeedA, FeedB, FeedC, Uroko, Pearl } // リソースの種類
 
+    public enum ResourceFishType { Kani, Tyoutyou, Kaisou, Syako, Koban, Teppou, Manta, Uni } // リソースの種類
     // 各リソースの在庫を管理するDictionary
     public Dictionary<ResourceType, int> inventory = new Dictionary<ResourceType, int>();
 
+    public Dictionary<ResourceFishType, int> finventory = new Dictionary<ResourceFishType, int>();
     public ResourceType? SelectedFeedType { get; set; } = ResourceType.OkiaMi; // デフォルトでOkiaMiを設定
+    public ResourceFishType? SelectedFishType { get; set; } = ResourceFishType.Kani;
 
     // 各リソースのUIテキスト
     public TextMeshProUGUI okiaMiText;
@@ -249,6 +252,12 @@ public class GameManager : MonoBehaviour
     {
         SelectedFeedType = feedType;
         Debug.Log("GameManagerで選択された餌タイプ: " + SelectedFeedType);
+    }
+
+    //FishUIManagerから呼び出され、選択した魚タイプを設定するメソッド
+    public void SetSelectedFishType(ResourceFishType fishType)
+    {
+        SelectedFishType = fishType;
     }
 
     // リソースUIを更新するメソッド
