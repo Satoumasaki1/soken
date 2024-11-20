@@ -43,10 +43,8 @@ public class Udeppo : MonoBehaviour, IDamageable
         }
 
         // 一時停止されていない場合、攻撃処理を実行
-        AttackOn();
-
-        // 近くにハゼがいる場合、追加効果を発動
         ApplyBuffFromHaze();
+        AttackOn();
     }
 
     private void OnMouseDown()
@@ -169,9 +167,6 @@ public class Udeppo : MonoBehaviour, IDamageable
     // 近くにハゼがいる場合、体力と最大体力を増加させる追加効果
     private void ApplyBuffFromHaze()
     {
-        if (maxHealthBuffApplied) return;
-
-        // 検知範囲内にいるHazeスクリプトが付いているオブジェクトを検索
         Collider[] colliders = Physics.OverlapSphere(transform.position, detectionRadius);
         bool isHazeNearby = false;
         Debug.Log("近くにいるハゼを検知しています...");
@@ -187,13 +182,21 @@ public class Udeppo : MonoBehaviour, IDamageable
         }
 
         // 体力と最大体力を設定する
-        if (isHazeNearby)
+        if (isHazeNearby && !maxHealthBuffApplied)
         {
             maxHealth += 20; // ハゼがいる場合、最大体力を20増加
             health = Mathf.Min(health + 20, maxHealth); // 現在の体力も20増加し、最大体力を超えないように制限
             detectionRadius *= 2; // ハゼがいる場合、検知範囲を2倍にする
             attackDamage *= 2; // ハゼがいる場合、射程を2倍にする
-            maxHealthBuffApplied = true; // バフが一度だけ適用されるようにする
+            maxHealthBuffApplied = true; // バフが適用されたことを記録
+        }
+        else if (!isHazeNearby && maxHealthBuffApplied)
+        {
+            maxHealth -= 20; // ハゼがいなくなった場合、最大体力を元に戻す
+            health = Mathf.Min(health, maxHealth); // 現在の体力を最大体力に合わせる
+            detectionRadius /= 2; // 検知範囲を元に戻す
+            attackDamage /= 2; // 射程を元に戻す
+            maxHealthBuffApplied = false; // バフを解除
         }
     }
 

@@ -34,6 +34,7 @@ public class Haze : MonoBehaviour, IDamageable
     void Update()
     {
         if (gm != null && gm.isPaused) return;
+        ApplyBuffFromUdeppo();
         AttackOn();
     }
 
@@ -134,8 +135,6 @@ public class Haze : MonoBehaviour, IDamageable
 
     private bool ApplyBuffFromUdeppo()
     {
-        if (maxHealthBuffApplied) return false;
-
         Collider[] colliders = Physics.OverlapSphere(transform.position, detectionRadius);
         bool isUdeppoNearby = false;
         Debug.Log("近くにいるテッポウエビを検知しています...");
@@ -146,13 +145,24 @@ public class Haze : MonoBehaviour, IDamageable
             {
                 isUdeppoNearby = true;
                 Debug.Log($"テッポウエビを検知しました: {udeppo.name}");
-                maxHealth += 20;
-                health = Mathf.Min(health + 20, maxHealth);
-                maxHealthBuffApplied = true;
-                ApplyBuffToAllies(colliders);
                 break;
             }
         }
+
+        if (isUdeppoNearby && !maxHealthBuffApplied)
+        {
+            maxHealth += 20;
+            health = Mathf.Min(health + 20, maxHealth);
+            maxHealthBuffApplied = true;
+            ApplyBuffToAllies(colliders);
+        }
+        else if (!isUdeppoNearby && maxHealthBuffApplied)
+        {
+            maxHealth -= 20;
+            health = Mathf.Min(health, maxHealth);
+            maxHealthBuffApplied = false;
+        }
+
         return isUdeppoNearby;
     }
 
