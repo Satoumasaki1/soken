@@ -5,6 +5,7 @@ public class Kobanuzame : MonoBehaviour, IDamageable
     // Kobanuzameの体力
     public int health = 20;
     public int maxHealth = 20;
+    private bool isBuffApplied = false;
 
     // Kobanuzameの攻撃力と攻撃関連の設定
     public int attackDamage = 5;
@@ -34,6 +35,8 @@ public class Kobanuzame : MonoBehaviour, IDamageable
     void Update()
     {
         if (gm != null && gm.isPaused) return;
+
+        ApplyBuffFromManuta();
         AttackOn();
     }
 
@@ -109,13 +112,48 @@ public class Kobanuzame : MonoBehaviour, IDamageable
 
     public void TakeDamage(int damageAmount)
     {
-        health -= damageAmount;
-        if (health <= 0) Die();
+        if (!isBuffApplied)
+        {
+            health -= damageAmount;
+            if (health <= 0) Die();
+        }
+        else
+        {
+            Debug.Log("Manutaの共生効果によりダメージを無効化しました。");
+        }
     }
 
     private void Die()
     {
         Destroy(gameObject);
+    }
+
+    private void ApplyBuffFromManuta()
+    {
+        Collider[] colliders = Physics.OverlapSphere(transform.position, detectionRadius);
+        bool manutaNearby = false;
+        Debug.Log("近くにいるManutaを検知しています...");
+        foreach (Collider collider in colliders)
+        {
+            Manuta manuta = collider.GetComponent<Manuta>();
+            if (manuta != null && manuta.gameObject != gameObject)
+            {
+                manutaNearby = true;
+                Debug.Log($"Manutaを検知しました: {manuta.name}");
+                break;
+            }
+        }
+
+        if (manutaNearby && !isBuffApplied)
+        {
+            attackCooldown *= 0.5f; // 攻撃頻度が上がる（クールダウン時間を半分にする）
+            isBuffApplied = true;  // バフが適用されたことを記録
+        }
+        else if (!manutaNearby && isBuffApplied)
+        {
+            attackCooldown *= 2.0f; // 攻撃頻度を元に戻す
+            isBuffApplied = false; // バフを解除
+        }
     }
 
     void OnDrawGizmosSelected()

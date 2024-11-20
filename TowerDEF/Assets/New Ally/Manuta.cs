@@ -5,6 +5,7 @@ public class Manuta : MonoBehaviour, IDamageable
     // Manutaの体力
     public int health = 20;
     public int maxHealth = 20;
+    private bool isBuffApplied = false;
 
     // Manutaの攻撃力と攻撃関連の設定
     public int attackDamage = 5;
@@ -34,6 +35,7 @@ public class Manuta : MonoBehaviour, IDamageable
     void Update()
     {
         if (gm != null && gm.isPaused) return;
+        ApplyBuffFromKobanuzame();
         AttackOn();
     }
 
@@ -116,6 +118,38 @@ public class Manuta : MonoBehaviour, IDamageable
     private void Die()
     {
         Destroy(gameObject);
+    }
+
+    private void ApplyBuffFromKobanuzame()
+    {
+        Collider[] colliders = Physics.OverlapSphere(transform.position, detectionRadius);
+        bool kobanuzameNearby = false;
+        Debug.Log("近くにいるKobanuzameを検知しています...");
+        foreach (Collider collider in colliders)
+        {
+            Kobanuzame kobanuzame = collider.GetComponent<Kobanuzame>();
+            if (kobanuzame != null && kobanuzame.gameObject != gameObject)
+            {
+                kobanuzameNearby = true;
+                Debug.Log($"Kobanuzameを検知しました: {kobanuzame.name}");
+                break;
+            }
+        }
+
+        if (kobanuzameNearby && !isBuffApplied)
+        {
+            maxHealth *= 3; // 体力を3倍にする
+            health = Mathf.Min(health * 3, maxHealth); // 現在の体力も3倍にし、最大体力を超えないようにする
+            attackDamage += 5; // 攻撃力を5増加
+            isBuffApplied = true;  // バフが適用されたことを記録
+        }
+        else if (!kobanuzameNearby && isBuffApplied)
+        {
+            maxHealth /= 3; // 体力を元に戻す
+            health = Mathf.Min(health, maxHealth); // 現在の体力を最大体力に合わせる
+            attackDamage -= 5; // 攻撃力を元に戻す
+            isBuffApplied = false; // バフを解除
+        }
     }
 
     void OnDrawGizmosSelected()
