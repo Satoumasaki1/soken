@@ -37,17 +37,10 @@ public class GameManager : MonoBehaviour
 
     public Dictionary<ResourceFishType, int> finventory = new Dictionary<ResourceFishType, int>();
     public ResourceType? SelectedFeedType { get; set; } = ResourceType.OkiaMi; // デフォルトでOkiaMiを設定
-    public ResourceFishType? SelectedFishType { get; set; } = ResourceFishType.Kani;
+    public ResourceFishType? SelectedFishType { get; set; } = null;
 
     // 各リソースのUIテキスト
-    public TextMeshProUGUI okiaMiText;
-    public TextMeshProUGUI benthosText;
-    public TextMeshProUGUI planktonText;
-    public TextMeshProUGUI feedAText;
-    public TextMeshProUGUI feedBText;
-    public TextMeshProUGUI feedCText;
-    public TextMeshProUGUI urokoText;
-    public TextMeshProUGUI pearlText;
+    public TextMeshProUGUI okiaMiText, benthosText, planktonText, feedAText, feedBText, feedCText, urokoText, pearlText, Kani, Tyoutyou, Kaisou, Syako, Koban, Teppou, Manta, Uni;
 
     public int currentDay = 0; // 現在の日数
     public List<int> enemyDays = new List<int> { 4, 8, 12, 16, 20 }; // 敵が攻めてくる特定の日
@@ -76,16 +69,25 @@ public class GameManager : MonoBehaviour
         ForceResumeGame();  // 初回ウェーブ開始時の一時停止解除を強制
         StartWave();  // 最初のウェーブ開始
 
-        // 各リソースの初期在庫を0に設定
+        // 餌の初期在庫を0に設定
         foreach (ResourceType resource in System.Enum.GetValues(typeof(ResourceType)))
         {
             inventory[resource] = 0;
+        }
+
+        // 魚の初期在庫を0に設定
+        foreach (ResourceFishType resource in System.Enum.GetValues(typeof(ResourceFishType)))
+        {
+            finventory[resource] = 0;
         }
 
         // オキアミ、ベントス、プランクトンの在庫を3に設定
         inventory[ResourceType.OkiaMi] = 3;
         inventory[ResourceType.Benthos] = 3;
         inventory[ResourceType.Plankton] = 3;
+
+        //動作確認のためにカニの在庫を3に設定
+        finventory[ResourceFishType.Kani] = 3;
 
         UpdateResourceUI(); // リソースの初期UIを更新
     }
@@ -271,6 +273,14 @@ public class GameManager : MonoBehaviour
         feedCText.text = "Feed C: " + inventory[ResourceType.FeedC];
         urokoText.text = "Uroko: " + inventory[ResourceType.Uroko];
         pearlText.text = "Pearl: " + inventory[ResourceType.Pearl];
+        Kani.text ="×" + finventory[ResourceFishType.Kani].ToString();
+        Tyoutyou.text = "×" + finventory[ResourceFishType.Tyoutyou].ToString();
+        Kaisou.text = "×" + finventory[ResourceFishType.Kaisou].ToString();
+        Syako.text = "×" + finventory[ResourceFishType.Syako].ToString();
+        Koban.text = "×" + finventory[ResourceFishType.Koban].ToString();
+        Teppou.text = "×" + finventory[ResourceFishType.Teppou].ToString();
+        Manta.text = "×" + finventory[ResourceFishType.Manta].ToString();
+        Uni.text = "×" + finventory[ResourceFishType.Uni].ToString();
     }
 
     // ゲームオーバー処理

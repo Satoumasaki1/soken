@@ -41,7 +41,7 @@ public class FeedUIManager : MonoBehaviour
     }
 
     // 餌の種類を保持するメソッド（ボタンから呼び出される）
-    public void SelectFeed(int feedTypeIndex)
+    /*public void SelectFeed(int feedTypeIndex)
     {
         GameManager.ResourceType selectedFeed = (GameManager.ResourceType)feedTypeIndex;
 
@@ -55,7 +55,7 @@ public class FeedUIManager : MonoBehaviour
         {
             Debug.Log($"{selectedFeed} の在庫がありません");
         }
-    }
+    }*/
 
     // UI表示を更新するメソッド
     private void UpdateFeedTypeUI()
