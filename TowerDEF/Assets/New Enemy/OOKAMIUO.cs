@@ -15,14 +15,33 @@ public class OOKAMIUO : MonoBehaviour, IDamageable
     private float lastAttackTime;
     private NavMeshAgent agent;
 
+    // 麻痺毒関連の設定
+    public bool isPoisoned = false; // 麻痺毒状態かどうか
+    private float poisonEndTime;
+    public float poisonSlowEffect = 0.5f; // 麻痺毒によるスピード減少率
+    private float originalAttackCooldown;
+    private float originalSpeed;
+    private bool poisonEffectApplied = false;
+
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
+        originalAttackCooldown = attackCooldown;
+        originalSpeed = agent.speed;
         FindTarget();
     }
 
     void Update()
     {
+        if (isPoisoned)
+        {
+            // 麻痺毒の効果が続く間、移動速度と攻撃クールダウンが減少する
+            if (Time.time > poisonEndTime)
+            {
+                RemovePoisonEffect();
+            }
+        }
+
         if (target == null || !target.CompareTag(targetTag))
         {
             FindTarget();
@@ -72,15 +91,39 @@ public class OOKAMIUO : MonoBehaviour, IDamageable
     public void TakeDamage(int damageAmount)
     {
         health -= damageAmount;
+        Debug.Log($"{name} がダメージを受けました: {damageAmount}, 残り体力: {health}");
         if (health <= 0)
         {
             Die();
         }
     }
 
+    public void ApplyPoison(float duration, float slowEffect)
+    {
+        isPoisoned = true;
+        poisonEndTime = Time.time + duration;
+        if (!poisonEffectApplied)
+        {
+            agent.speed = originalSpeed * slowEffect; // 移動速度を減少させる
+            attackCooldown = originalAttackCooldown * 2; // 攻撃クールダウンを長くする
+            poisonEffectApplied = true;
+            Debug.Log($"{name} が麻痺毒の効果を受けました。持続時間: {duration}秒、スロー効果: {slowEffect}");
+        }
+    }
+
+    private void RemovePoisonEffect()
+    {
+        isPoisoned = false;
+        agent.speed = originalSpeed; // 移動速度を元に戻す
+        attackCooldown = originalAttackCooldown; // 攻撃クールダウンを元に戻す
+        poisonEffectApplied = false;
+        Debug.Log($"{name} の麻痺毒の効果が解除されました。");
+    }
+
     private void Die()
     {
         // OOKAMIUOが倒れた際の処理（例えば破壊など）
+        Debug.Log($"{name} が倒れました。");
         Destroy(gameObject);
     }
 }

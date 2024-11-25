@@ -21,12 +21,16 @@ public class Ikasan : MonoBehaviour, IDamageable
     private float poisonEndTime;
     public float poisonSlowEffect = 0.5f; // 麻痺毒によるスピード減少率
     private float originalAttackCooldown;
+    private float originalSpeed;
+    private bool poisonEffectApplied = false;
 
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
         originalAttackCooldown = attackCooldown;
+        originalSpeed = agent.speed;
         FindTarget();
+        Debug.Log("Ikasanが初期化されました。ターゲットを探しています...");
     }
 
     void Update()
@@ -49,13 +53,19 @@ public class Ikasan : MonoBehaviour, IDamageable
         {
             // ターゲットに向かって移動する
             agent.SetDestination(target.position);
+            Debug.Log($"ターゲットに向かって移動中: {target.name}");
 
             // 攻撃範囲内にターゲットがいる場合、攻撃する
             if (Vector3.Distance(transform.position, target.position) <= attackRange && Time.time > lastAttackTime + attackCooldown)
             {
+                Debug.Log("AttackTargetメソッドを呼び出します...");
                 AttackTarget();
                 lastAttackTime = Time.time;
             }
+        }
+        else
+        {
+            Debug.Log("ターゲットが見つかりません。");
         }
     }
 
@@ -66,6 +76,7 @@ public class Ikasan : MonoBehaviour, IDamageable
         if (allyTarget != null)
         {
             target = allyTarget.transform;
+            Debug.Log($"ターゲットを発見: {target.name} (Ally)");
             return;
         }
 
@@ -74,6 +85,7 @@ public class Ikasan : MonoBehaviour, IDamageable
         if (baseTarget != null)
         {
             target = baseTarget.transform;
+            Debug.Log($"ターゲットを発見: {target.name} (Base)");
         }
     }
 
@@ -83,12 +95,18 @@ public class Ikasan : MonoBehaviour, IDamageable
         if (damageable != null)
         {
             damageable.TakeDamage(attackDamage);
+            Debug.Log($"ターゲットに攻撃しました: {target.name}, ダメージ: {attackDamage}");
+        }
+        else
+        {
+            Debug.Log($"ターゲット {target.name} は攻撃対象としてIDamageableを持っていません。");
         }
     }
 
     public void TakeDamage(int damageAmount)
     {
         health -= damageAmount;
+        Debug.Log($"Ikasanがダメージを受けました: {damageAmount}, 残り体力: {health}");
         if (health <= 0)
         {
             Die();
@@ -99,23 +117,28 @@ public class Ikasan : MonoBehaviour, IDamageable
     {
         isPoisoned = true;
         poisonEndTime = Time.time + duration;
-        poisonSlowEffect = slowEffect;
-        agent.speed *= slowEffect; // 移動速度を減少させる
-        attackCooldown *= 2; // 攻撃クールダウンを長くする
-        Debug.Log($"{name} が麻痺毒の効果を受けました。持続時間: {duration}秒、スロー効果: {slowEffect}");
+        if (!poisonEffectApplied)
+        {
+            agent.speed = originalSpeed * slowEffect; // 移動速度を減少させる
+            attackCooldown = originalAttackCooldown * 2; // 攻撃クールダウンを長くする
+            poisonEffectApplied = true;
+            Debug.Log($"{name} が麻痺毒の効果を受けました。持続時間: {duration}秒、スロー効果: {slowEffect}");
+        }
     }
 
     private void RemovePoisonEffect()
     {
         isPoisoned = false;
-        agent.speed /= poisonSlowEffect; // 移動速度を元に戻す
+        agent.speed = originalSpeed; // 移動速度を元に戻す
         attackCooldown = originalAttackCooldown; // 攻撃クールダウンを元に戻す
+        poisonEffectApplied = false;
         Debug.Log($"{name} の麻痺毒の効果が解除されました。");
     }
 
     private void Die()
     {
         // Ikasanが倒れた際の処理（例えば破壊など）
+        Debug.Log($"{name} が倒れました。");
         Destroy(gameObject);
     }
 }

@@ -84,10 +84,50 @@ public class HanaminoKasago : MonoBehaviour, IDamageable
                         Debug.Log($"{collider.name} に麻痺毒の継続ダメージを与えました。");
                     }
 
-                    Ikasan ikasan = collider.GetComponent<Ikasan>();
-                    if (ikasan != null)
+                    // 麻痺毒処理を適用
+                    if (collider.TryGetComponent(out Ikasan ikasan))
                     {
                         ikasan.ApplyPoison(effectInterval, poisonDamage);
+                        Debug.Log($"{collider.name} に麻痺毒を適用しました。");
+                    }
+                    else if (collider.TryGetComponent(out OOKAMIUO ookamiuo))
+                    {
+                        ookamiuo.ApplyPoison(effectInterval, poisonDamage);
+                        Debug.Log($"{collider.name} に麻痺毒を適用しました。");
+                    }
+                    else if (collider.TryGetComponent(out SAME same))
+                    {
+                        same.ApplyPoison(effectInterval, poisonDamage);
+                        Debug.Log($"{collider.name} に麻痺毒を適用しました。");
+                    }
+                    else if (collider.TryGetComponent(out UTUBO utubo))
+                    {
+                        utubo.ApplyPoison(effectInterval, poisonDamage);
+                        Debug.Log($"{collider.name} に麻痺毒を適用しました。");
+                    }
+                    else if (collider.TryGetComponent(out AKAEI akaei))
+                    {
+                        akaei.ApplyPoison(effectInterval, poisonDamage);
+                        Debug.Log($"{collider.name} に麻痺毒を適用しました。");
+                    }
+                    else if (collider.TryGetComponent(out ISEEBI iseebi))
+                    {
+                        iseebi.ApplyPoison(effectInterval, poisonDamage);
+                        Debug.Log($"{collider.name} に麻痺毒を適用しました。");
+                    }
+                    else if (collider.TryGetComponent(out KAZIKI kaziki))
+                    {
+                        kaziki.ApplyPoison(effectInterval, poisonDamage);
+                        Debug.Log($"{collider.name} に麻痺毒を適用しました。");
+                    }
+                    else if (collider.TryGetComponent(out ONIDARUMA_OKOZE onidaruma_okoze))
+                    {
+                        onidaruma_okoze.ApplyPoison(effectInterval, poisonDamage);
+                        Debug.Log($"{collider.name} に麻痺毒を適用しました。");
+                    }
+                    else if (collider.TryGetComponent(out ONIKAMASU onikamasu))
+                    {
+                        onikamasu.ApplyPoison(effectInterval, poisonDamage);
                         Debug.Log($"{collider.name} に麻痺毒を適用しました。");
                     }
                 }
@@ -96,15 +136,20 @@ public class HanaminoKasago : MonoBehaviour, IDamageable
         }
     }
 
+    // ダメージを受けたときの処理
     public void TakeDamage(int damageAmount)
     {
         health -= damageAmount;
-        if (health <= 0) Die();
+        if (health <= 0)
+        {
+            Die();
+        }
     }
 
+    // HanaminoKasagoが倒れたときの処理
     private void Die()
     {
-        Destroy(gameObject);
+        Destroy(gameObject); // オブジェクトを破壊
     }
 
     void OnDrawGizmosSelected()

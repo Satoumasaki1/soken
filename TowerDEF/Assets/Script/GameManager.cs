@@ -210,6 +210,8 @@ public class GameManager : MonoBehaviour
             }
         }
 
+
+
         Debug.Log("ƒQ[ƒ€‚Í " + (isPaused ? "ˆê’â~’†" : "ÄŠJ’†"));
     }
 
