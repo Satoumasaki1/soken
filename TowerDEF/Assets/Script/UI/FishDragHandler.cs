@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 public class FishDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
@@ -13,9 +14,9 @@ public class FishDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, I
 
     private bool canDrag = true; // ドラッグ可能かどうかを判定するフラグ
 
-    private void Awake()
+    public void Start()
     {
-        // 初期化処理などがあればここに記述
+        gameManager = GameObject.Find("GameManager").GetComponent<GameManager>();
     }
 
     public void OnBeginDrag(PointerEventData eventData)
@@ -33,15 +34,27 @@ public class FishDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, I
         // ドラッグ中に表示するプレビューオブジェクトを作成
         dragPreview = new GameObject("DragPreview");
         dragPreview.transform.SetParent(canvas.transform, false);
-        dragPreview.AddComponent<CanvasGroup>().blocksRaycasts = false; // Raycastを無効化
-        dragPreviewRectTransform = dragPreview.AddComponent<RectTransform>();
-        dragPreviewRectTransform.sizeDelta = GetComponent<RectTransform>().sizeDelta;
 
-        // プレビューに魚の画像を設定
+        // プレビューにImageコンポーネントを追加
         var image = dragPreview.AddComponent<UnityEngine.UI.Image>();
-        image.sprite = GetComponent<UnityEngine.UI.Image>().sprite;
+        var originalImage = GetComponent<UnityEngine.UI.Image>();
+
+        // スプライトをコピー
+        image.sprite = originalImage.sprite;
+
+        // 縦横比を維持
+        image.preserveAspect = true;
+
+        // サイズを元のImageコンポーネントに合わせる
+        RectTransform originalRect = GetComponent<RectTransform>();
+        dragPreviewRectTransform = dragPreview.GetComponent<RectTransform>();
+        dragPreviewRectTransform.sizeDelta = originalRect.sizeDelta;
+
+        // 半透明に設定
         image.color = new Color(1f, 1f, 1f, 0.7f); // 半透明に設定
+        dragPreview.AddComponent<CanvasGroup>().blocksRaycasts = false; // Raycastを無効化
     }
+
 
     public void OnDrag(PointerEventData eventData)
     {
@@ -65,6 +78,12 @@ public class FishDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, I
         if (!canDrag || dragPreview == null)
             return;
 
+        if (dragPreview != null)
+        {
+            Destroy(dragPreview); // プレビューオブジェクトを削除
+            dragPreview = null;   // 参照をクリア
+        }
+
         // ドロップ位置を取得
         Vector3 mousePosition = Input.mousePosition;
 
@@ -76,14 +95,13 @@ public class FishDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, I
         {
             SpawnFishAt(worldPosition);
             gameManager.finventory[fishType]--; // 在庫を減らす
+            gameManager.UpdateResourceUI();
         }
         else
         {
             Debug.Log("在庫不足で設置できません");
         }
 
-        // プレビューオブジェクトを削除
-        Destroy(dragPreview);
     }
 
     private void SpawnFishAt(Vector3 position)
