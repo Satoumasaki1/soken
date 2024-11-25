@@ -115,12 +115,15 @@ public class Kobanuzame : MonoBehaviour, IDamageable
         if (!isBuffApplied)
         {
             health -= damageAmount;
-            if (health <= 0) Die();
         }
         else
         {
-            Debug.Log("Manutaの共生効果によりダメージを無効化しました。");
+            int reducedDamage = Mathf.RoundToInt(damageAmount * 0.25f); // ダメージを75%軽減
+            health -= reducedDamage;
+            Debug.Log($"Manutaの共生効果によりダメージが軽減されました。受けたダメージ: {reducedDamage}");
         }
+
+        if (health <= 0) Die();
     }
 
     private void Die()
