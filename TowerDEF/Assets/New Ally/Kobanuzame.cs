@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections;
 
 public class Kobanuzame : MonoBehaviour, IDamageable
 {
@@ -6,9 +7,13 @@ public class Kobanuzame : MonoBehaviour, IDamageable
     public int health = 20;
     public int maxHealth = 20;
     private bool isBuffApplied = false;
+    private bool maxHealthBuffApplied = false;
+    public bool isBuffActive = false; // バフが有効かどうかのフラグ
+    private int originalAttackDamage = 5;
+    public int attackDamage = 5;
+    public float buffMultiplier = 1.5f; // 攻撃バフの倍率
 
     // Kobanuzameの攻撃力と攻撃関連の設定
-    public int attackDamage = 5;
     public float detectionRadius = 10f;     // 敵を検知する範囲
     public float attackCooldown = 1.0f;     // 攻撃のクールダウン時間
 
@@ -37,6 +42,7 @@ public class Kobanuzame : MonoBehaviour, IDamageable
         if (gm != null && gm.isPaused) return;
 
         ApplyBuffFromManuta();
+        ApplyBuffFromIruka();
         AttackOn();
     }
 
@@ -156,6 +162,33 @@ public class Kobanuzame : MonoBehaviour, IDamageable
         {
             attackCooldown *= 2.0f; // 攻撃頻度を元に戻す
             isBuffApplied = false; // バフを解除
+        }
+    }
+
+    private void ApplyBuffFromIruka()
+    {
+        Collider[] colliders = Physics.OverlapSphere(transform.position, detectionRadius);
+        bool irukaNearby = false;
+        foreach (Collider collider in colliders)
+        {
+            if (collider.TryGetComponent(out Iruka iruka))
+            {
+                irukaNearby = true;
+                if (!isBuffActive)
+                {
+                    isBuffActive = true;
+                    attackDamage = Mathf.RoundToInt(originalAttackDamage * buffMultiplier);
+                    Debug.Log($"{name} の攻撃力が強化されました: {attackDamage}");
+                }
+                break;
+            }
+        }
+
+        if (!irukaNearby && isBuffActive)
+        {
+            isBuffActive = false;
+            attackDamage = originalAttackDamage;
+            Debug.Log($"{name} の攻撃力強化が終了しました。元の攻撃力に戻りました: {attackDamage}");
         }
     }
 

@@ -6,8 +6,10 @@ public class Udeppo : MonoBehaviour, IDamageable
     public int health = 20;
     public int maxHealth = 20;
     private bool maxHealthBuffApplied = false;
+    public bool isBuffActive = false; // バフが有効かどうかのフラグ
+    private int originalAttackDamage = 10; // 元の攻撃力
 
-    // TeppoEbiの攻撃力と攻撃関連の設定
+    // Udeppoの攻撃力と攻撃関連の設定
     public int attackDamage = 10;
     public float detectionRadius = 20f;     // 敵を検知する範囲（射程が長い）
     public float attackCooldown = 3.0f;     // 攻撃のクールダウン時間（攻撃頻度は遅い）
@@ -44,6 +46,7 @@ public class Udeppo : MonoBehaviour, IDamageable
 
         // 一時停止されていない場合、攻撃処理を実行
         ApplyBuffFromHaze();
+        ApplyBuffFromIruka(); // イルカからのバフを適用
         AttackOn();
     }
 
@@ -187,7 +190,7 @@ public class Udeppo : MonoBehaviour, IDamageable
             maxHealth += 20; // ハゼがいる場合、最大体力を20増加
             health = Mathf.Min(health + 20, maxHealth); // 現在の体力も20増加し、最大体力を超えないように制限
             detectionRadius *= 2; // ハゼがいる場合、検知範囲を2倍にする
-            attackDamage *= 2; // ハゼがいる場合、射程を2倍にする
+            attackDamage *= 2; // ハゼがいる場合、攻撃力を2倍にする
             maxHealthBuffApplied = true; // バフが適用されたことを記録
         }
         else if (!isHazeNearby && maxHealthBuffApplied)
@@ -195,8 +198,36 @@ public class Udeppo : MonoBehaviour, IDamageable
             maxHealth -= 20; // ハゼがいなくなった場合、最大体力を元に戻す
             health = Mathf.Min(health, maxHealth); // 現在の体力を最大体力に合わせる
             detectionRadius /= 2; // 検知範囲を元に戻す
-            attackDamage /= 2; // 射程を元に戻す
+            attackDamage /= 2; // 攻撃力を元に戻す
             maxHealthBuffApplied = false; // バフを解除
+        }
+    }
+
+    // 近くにイルカがいる場合、攻撃力を増加させる追加効果
+    private void ApplyBuffFromIruka()
+    {
+        Collider[] colliders = Physics.OverlapSphere(transform.position, detectionRadius);
+        bool irukaNearby = false;
+        foreach (Collider collider in colliders)
+        {
+            if (collider.TryGetComponent(out Iruka iruka))
+            {
+                irukaNearby = true;
+                if (!isBuffActive)
+                {
+                    isBuffActive = true;
+                    attackDamage = Mathf.RoundToInt(attackDamage * 1.5f); // 攻撃力を50%増加
+                    Debug.Log($"{name} の攻撃力が強化されました: {attackDamage}");
+                }
+                break;
+            }
+        }
+
+        if (!irukaNearby && isBuffActive)
+        {
+            isBuffActive = false;
+            attackDamage = originalAttackDamage; // 攻撃力を元に戻す
+            Debug.Log($"{name} の攻撃力強化が終了しました。元の攻撃力に戻りました: {attackDamage}");
         }
     }
 

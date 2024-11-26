@@ -1,14 +1,18 @@
 using UnityEngine;
+using System.Collections;
 
 public class Haze : MonoBehaviour, IDamageable
 {
     // Hazeの体力と最大体力
+    public float buffMultiplier = 1.5f; // 攻撃バフの倍率
     public int health = 20;
     public int maxHealth = 20;
     private bool maxHealthBuffApplied = false;
+    public bool isBuffActive = false; // バフが有効かどうかのフラグ
+    private int originalAttackDamage = 5;
+    public int attackDamage = 5;
 
     // 攻撃関連の設定
-    public int attackDamage = 5;
     public float detectionRadius = 10f;
     public float attackCooldown = 1.0f;
 
@@ -35,6 +39,7 @@ public class Haze : MonoBehaviour, IDamageable
     {
         if (gm != null && gm.isPaused) return;
         ApplyBuffFromUdeppo();
+        ApplyIrukaBuff();
         AttackOn();
     }
 
@@ -154,7 +159,6 @@ public class Haze : MonoBehaviour, IDamageable
             maxHealth += 20;
             health = Mathf.Min(health + 20, maxHealth);
             maxHealthBuffApplied = true;
-            ApplyBuffToAllies(colliders);
         }
         else if (!isUdeppoNearby && maxHealthBuffApplied)
         {
@@ -166,21 +170,31 @@ public class Haze : MonoBehaviour, IDamageable
         return isUdeppoNearby;
     }
 
-    private void ApplyBuffToAllies(Collider[] colliders)
+    // イルカのバフが有効か確認して適用する処理
+    private void ApplyIrukaBuff()
     {
-        foreach (Collider nearbyCollider in colliders)
+        Collider[] colliders = Physics.OverlapSphere(transform.position, detectionRadius);
+        bool irukaNearby = false;
+        foreach (Collider collider in colliders)
         {
-            if (nearbyCollider.CompareTag("Ally"))
+            if (collider.TryGetComponent(out Iruka iruka))
             {
-                Haze nearbyHaze = nearbyCollider.GetComponent<Haze>();
-                if (nearbyHaze != null && nearbyHaze.gameObject != gameObject && !nearbyHaze.maxHealthBuffApplied)
+                irukaNearby = true;
+                if (!isBuffActive)
                 {
-                    nearbyHaze.maxHealth += 20;
-                    nearbyHaze.health = Mathf.Min(nearbyHaze.health + 20, nearbyHaze.maxHealth);
-                    nearbyHaze.maxHealthBuffApplied = true;
-                    Debug.Log($"{nearbyHaze.name} の最大体力を20増加しました。");
+                    isBuffActive = true;
+                    attackDamage = Mathf.RoundToInt(originalAttackDamage * buffMultiplier);
+                    Debug.Log($"{name} の攻撃力が強化されました: {attackDamage}");
                 }
+                break;
             }
+        }
+
+        if (!irukaNearby && isBuffActive)
+        {
+            isBuffActive = false;
+            attackDamage = originalAttackDamage;
+            Debug.Log($"{name} の攻撃力強化が終了しました。元の攻撃力に戻りました: {attackDamage}");
         }
     }
 

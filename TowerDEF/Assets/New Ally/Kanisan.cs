@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections;
 
 public class Kanisan : MonoBehaviour, IDamageable
 {
@@ -6,9 +7,12 @@ public class Kanisan : MonoBehaviour, IDamageable
     public int health = 10;
     public int maxHealth = 10;
     private bool maxHealthBuffApplied = false;
+    public bool isBuffActive = false; // バフが有効かどうかのフラグ
+    private int originalAttackDamage = 3;
+    public int attackDamage = 3;
+    public float buffMultiplier = 1.5f; // 攻撃バフの倍率
 
     // Kanisanの攻撃力と攻撃関連の設定
-    public int attackDamage = 3;
     public float detectionRadius = 10f;     // 敵を検知する範囲
     public float attackCooldown = 1.5f;     // 攻撃のクールダウン時間
 
@@ -47,6 +51,9 @@ public class Kanisan : MonoBehaviour, IDamageable
 
         // 近くのカニさんの数に応じて攻撃力と体力を強化
         BuffKanisan();
+
+        // イルカからのバフを適用
+        ApplyIrukaBuff();
     }
 
     private void OnMouseDown()
@@ -204,6 +211,34 @@ public class Kanisan : MonoBehaviour, IDamageable
         health = Mathf.Min(health + nearbyKanisanCount * 5, maxHealth); // 通常の体力にも近くのカニさん数に応じて5ずつ加算
 
         maxHealthBuffApplied = true; // バフが一度だけ適用されるようにする
+    }
+
+    // イルカのバフを適用するメソッド
+    private void ApplyIrukaBuff()
+    {
+        Collider[] colliders = Physics.OverlapSphere(transform.position, detectionRadius);
+        bool irukaNearby = false;
+        foreach (Collider collider in colliders)
+        {
+            if (collider.TryGetComponent(out Iruka iruka))
+            {
+                irukaNearby = true;
+                if (!isBuffActive)
+                {
+                    isBuffActive = true;
+                    attackDamage = Mathf.RoundToInt(originalAttackDamage * buffMultiplier);
+                    Debug.Log($"{name} の攻撃力が強化されました: {attackDamage}");
+                }
+                break;
+            }
+        }
+
+        if (!irukaNearby && isBuffActive)
+        {
+            isBuffActive = false;
+            attackDamage = originalAttackDamage;
+            Debug.Log($"{name} の攻撃力強化が終了しました。元の攻撃力に戻りました: {attackDamage}");
+        }
     }
 
     void OnDrawGizmosSelected()
