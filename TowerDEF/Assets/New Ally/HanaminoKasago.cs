@@ -1,8 +1,10 @@
 using UnityEngine;
+using System.Collections;
 
 public class HanaminoKasago : MonoBehaviour, IDamageable
 {
     // HanaminoKasagoの体力と最大体力
+    public float buffMultiplier = 1.5f; // 攻撃バフの倍率
     public int health = 20;
     public int maxHealth = 20;
 
@@ -12,6 +14,9 @@ public class HanaminoKasago : MonoBehaviour, IDamageable
     public float effectInterval = 1.0f; // 継続ダメージの間隔
 
     private float lastEffectTime;
+    public bool isBuffActive = false; // バフが有効かどうかのフラグ
+    private int originalAttackDamage = 10;
+    public int attackDamage = 10; // 攻撃力
 
     [SerializeField]
     private GameManager gm;
@@ -33,6 +38,8 @@ public class HanaminoKasago : MonoBehaviour, IDamageable
     {
         if (gm != null && gm.isPaused) return;
         ApplyParalyticPoisonEffect();
+        ApplyIrukaBuff();
+
     }
 
     private void OnMouseDown()
@@ -136,6 +143,34 @@ public class HanaminoKasago : MonoBehaviour, IDamageable
         }
     }
 
+    // イルカのバフが有効か確認して適用する処理
+    private void ApplyIrukaBuff()
+    {
+        Collider[] colliders = Physics.OverlapSphere(transform.position, detectionRadius);
+        bool irukaNearby = false;
+        foreach (Collider collider in colliders)
+        {
+            if (collider.TryGetComponent(out Iruka iruka))
+            {
+                irukaNearby = true;
+                if (!isBuffActive)
+                {
+                    isBuffActive = true;
+                    attackDamage = Mathf.RoundToInt(originalAttackDamage * buffMultiplier);
+                    Debug.Log($"{name} の攻撃力が強化されました: {attackDamage}");
+                }
+                break;
+            }
+        }
+
+        if (!irukaNearby && isBuffActive)
+        {
+            isBuffActive = false;
+            attackDamage = originalAttackDamage;
+            Debug.Log($"{name} の攻撃力強化が終了しました。元の攻撃力に戻りました: {attackDamage}");
+        }
+    }
+
     // ダメージを受けたときの処理
     public void TakeDamage(int damageAmount)
     {
@@ -145,6 +180,8 @@ public class HanaminoKasago : MonoBehaviour, IDamageable
             Die();
         }
     }
+
+
 
     // HanaminoKasagoが倒れたときの処理
     private void Die()
