@@ -48,6 +48,9 @@ public class GameManager : MonoBehaviour
     [SerializeField]
     public TextMeshProUGUI WaveText; // TextMeshProで表示するウェーブ情報
 
+    // ランダムな魚のPrefabリスト
+    [SerializeField] private List<GameObject> fishPrefabs;
+
     private void Awake()
     {
         // Singletonパターン（インスタンスがすでに存在しない場合のみ新しく作成）
@@ -95,11 +98,6 @@ public class GameManager : MonoBehaviour
 
     private void Update()
     {
-        // 「E」キーでゲームの一時停止・再開を切り替え
-        if (Input.GetKeyDown(KeyCode.E))
-        {
-            TogglePause();
-        }
 
         // ゲームが一時停止中でない場合、ウェーブのタイマーを更新
         if (!isPaused && currentWave < totalWaves)
@@ -232,10 +230,28 @@ public class GameManager : MonoBehaviour
         {
             Debug.Log("ウェーブ " + currentWave + " で敵が攻めてきます");
         }
+
+        ConvertFeedToFish();
+    }
+
+    void ConvertFeedToFish()
+    {
+        // "esa" タグを持つすべてのオブジェクトを取得
+        GameObject[] feeds = GameObject.FindGameObjectsWithTag("esa");
+
+        foreach (GameObject feed in feeds)
+        {
+            // 餌オブジェクトをランダムな魚に変換
+            int randomIndex = Random.Range(0, fishPrefabs.Count);
+            GameObject fish = Instantiate(fishPrefabs[randomIndex], feed.transform.position, feed.transform.rotation);
+
+            // 餌オブジェクトを削除（必要であれば）
+            Destroy(feed);
+        }
     }
 
     // 次のウェーブボタンを表示するメソッド
-    public void ShowNextWaveButton()
+    public void ShowNextWaveButton()    
     {
         isPaused = true; // 一時停止状態にする
         ApplyPauseState(); // ゲームの状態を更新

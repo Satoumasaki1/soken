@@ -11,6 +11,7 @@ TagManager:
   - LevelUpItem
   - esaba
   - Kobanzame
+  - esa
   layers:
   - Default
   - TransparentFX
