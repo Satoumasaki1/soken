@@ -368,7 +368,7 @@ MonoBehaviour:
   enemyDays: 04000000080000000c0000001000000014000000
   WaveText: {fileID: 0}
   fishPrefabs:
-  - {fileID: 1966599486778967982, guid: a5b7d040c6290384a81e3e63de7c96c5, type: 3}
+  - {fileID: 1966599486778967982, guid: 8740ce4dafd7fca468706f66537ab755, type: 3}
   - {fileID: 8406294964934083184, guid: 43e101c13fe662643af3533428831cf4, type: 3}
 --- !u!4 &236498097
 Transform:
@@ -1066,6 +1066,10 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.x
       value: -53.78579
       objectReference: {fileID: 0}
+    - target: {fileID: 1831959541, guid: b2dfc1e08f5e73e44865d148534e7587, type: 3}
+      propertyPath: fishPrefab
+      value: 
+      objectReference: {fileID: 1966599486778967982, guid: a5b7d040c6290384a81e3e63de7c96c5, type: 3}
     - target: {fileID: 1831959541, guid: b2dfc1e08f5e73e44865d148534e7587, type: 3}
       propertyPath: gameManager
       value: 
