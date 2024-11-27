@@ -994,6 +994,10 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.x
       value: -52.985794
       objectReference: {fileID: 0}
+    - target: {fileID: 38428772, guid: b2dfc1e08f5e73e44865d148534e7587, type: 3}
+      propertyPath: m_RaycastPadding.z
+      value: 31.3
+      objectReference: {fileID: 0}
     - target: {fileID: 222079874, guid: b2dfc1e08f5e73e44865d148534e7587, type: 3}
       propertyPath: m_RootOrder
       value: 8
@@ -1005,6 +1009,10 @@ PrefabInstance:
     - target: {fileID: 222079874, guid: b2dfc1e08f5e73e44865d148534e7587, type: 3}
       propertyPath: m_AnchoredPosition.y
       value: -195.69998
+      objectReference: {fileID: 0}
+    - target: {fileID: 222079876, guid: b2dfc1e08f5e73e44865d148534e7587, type: 3}
+      propertyPath: m_RaycastPadding.z
+      value: 75.8
       objectReference: {fileID: 0}
     - target: {fileID: 405146905, guid: b2dfc1e08f5e73e44865d148534e7587, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
@@ -1018,6 +1026,10 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.x
       value: -63.18579
       objectReference: {fileID: 0}
+    - target: {fileID: 450575945, guid: b2dfc1e08f5e73e44865d148534e7587, type: 3}
+      propertyPath: m_RaycastPadding.z
+      value: 32.3
+      objectReference: {fileID: 0}
     - target: {fileID: 587883315, guid: b2dfc1e08f5e73e44865d148534e7587, type: 3}
       propertyPath: m_RootOrder
       value: 6
@@ -1026,6 +1038,10 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.x
       value: -52.18579
       objectReference: {fileID: 0}
+    - target: {fileID: 587883316, guid: b2dfc1e08f5e73e44865d148534e7587, type: 3}
+      propertyPath: m_RaycastPadding.z
+      value: 23
+      objectReference: {fileID: 0}
     - target: {fileID: 1271078446, guid: b2dfc1e08f5e73e44865d148534e7587, type: 3}
       propertyPath: m_RootOrder
       value: 4
@@ -1033,6 +1049,10 @@ PrefabInstance:
     - target: {fileID: 1271078446, guid: b2dfc1e08f5e73e44865d148534e7587, type: 3}
       propertyPath: m_AnchoredPosition.x
       value: -59.18579
+      objectReference: {fileID: 0}
+    - target: {fileID: 1271078447, guid: b2dfc1e08f5e73e44865d148534e7587, type: 3}
+      propertyPath: m_RaycastPadding.z
+      value: 13.2
       objectReference: {fileID: 0}
     - target: {fileID: 1282453872, guid: b2dfc1e08f5e73e44865d148534e7587, type: 3}
       propertyPath: m_AnchorMax.x
@@ -1052,7 +1072,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1289528431, guid: b2dfc1e08f5e73e44865d148534e7587, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -0.00053610845
+      value: -0.0009899689
       objectReference: {fileID: 0}
     - target: {fileID: 1446246795, guid: b2dfc1e08f5e73e44865d148534e7587, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_Target
@@ -1065,6 +1085,10 @@ PrefabInstance:
     - target: {fileID: 1550302596, guid: b2dfc1e08f5e73e44865d148534e7587, type: 3}
       propertyPath: m_AnchoredPosition.x
       value: -53.78579
+      objectReference: {fileID: 0}
+    - target: {fileID: 1550302597, guid: b2dfc1e08f5e73e44865d148534e7587, type: 3}
+      propertyPath: m_RaycastPadding.z
+      value: 13.5
       objectReference: {fileID: 0}
     - target: {fileID: 1831959541, guid: b2dfc1e08f5e73e44865d148534e7587, type: 3}
       propertyPath: fishPrefab
@@ -1085,6 +1109,10 @@ PrefabInstance:
     - target: {fileID: 1937753882, guid: b2dfc1e08f5e73e44865d148534e7587, type: 3}
       propertyPath: m_AnchorMin.y
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2934130856589266751, guid: b2dfc1e08f5e73e44865d148534e7587, type: 3}
+      propertyPath: m_RaycastPadding.z
+      value: 17.04
       objectReference: {fileID: 0}
     - target: {fileID: 4798916548452943258, guid: b2dfc1e08f5e73e44865d148534e7587, type: 3}
       propertyPath: m_Name
@@ -1177,6 +1205,10 @@ PrefabInstance:
     - target: {fileID: 6215195177300785430, guid: b2dfc1e08f5e73e44865d148534e7587, type: 3}
       propertyPath: m_AnchoredPosition.x
       value: -66.68579
+      objectReference: {fileID: 0}
+    - target: {fileID: 6227327693510114235, guid: b2dfc1e08f5e73e44865d148534e7587, type: 3}
+      propertyPath: m_RaycastPadding.z
+      value: 109.69
       objectReference: {fileID: 0}
     - target: {fileID: 7203054336595195208, guid: b2dfc1e08f5e73e44865d148534e7587, type: 3}
       propertyPath: m_AnchoredPosition.x

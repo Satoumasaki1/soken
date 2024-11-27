@@ -1,25 +1,30 @@
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 public class DragCamera : MonoBehaviour
 {
     public float dragSpeed = 2.0f;       // ドラッグ時のカメラの移動速度
     public float zoomSpeed = 5.0f;       // ズーム時のカメラの速度
     public float minZoomDistance = 150.0f; // ズームの最小距離（下限）
-    public float maxZoomDistance = 265.0f;// ズームの最大距離（上限）
+    public float maxZoomDistance = 265.0f; // ズームの最大距離（上限）
 
     private Vector3 dragOrigin;
+    private bool isDraggingFromUI = false; // ドラッグ開始がUI上かどうかを記録
 
     void Update()
     {
-        // 左クリックを押した時に開始位置を取得
+        // 左クリックを押した時にドラッグ開始位置を取得
         if (Input.GetMouseButtonDown(0))
         {
             dragOrigin = Input.mousePosition;
+
+            // UI上でクリックが開始されたかを記録
+            isDraggingFromUI = IsPointerOverUI();
             return;
         }
 
-        // 左クリックを押し続けている時にドラッグ
-        if (Input.GetMouseButton(0))
+        // 左クリックを押し続けている間、UIからのドラッグでない場合のみカメラ移動を行う
+        if (Input.GetMouseButton(0) && !isDraggingFromUI)
         {
             Vector3 pos = Camera.main.ScreenToViewportPoint(Input.mousePosition - dragOrigin);
 
@@ -50,5 +55,14 @@ public class DragCamera : MonoBehaviour
                 transform.Translate(zoom, Space.World);
             }
         }
+    }
+
+    /// <summary>
+    /// マウスがUI要素の上にあるかどうかをチェックする
+    /// </summary>
+    /// <returns>UIの上にある場合はtrue、そうでない場合はfalse</returns>
+    private bool IsPointerOverUI()
+    {
+        return EventSystem.current.IsPointerOverGameObject();
     }
 }
