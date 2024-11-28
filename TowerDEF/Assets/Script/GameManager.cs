@@ -51,6 +51,17 @@ public class GameManager : MonoBehaviour
     // ランダムな魚のPrefabリスト
     [SerializeField] private List<GameObject> fishPrefabs;
 
+    // 季節の列挙型
+    public enum Season
+    {
+        Spring,
+        Summer,
+        Autumn,
+        Winter
+    }
+
+    public Season currentSeason = Season.Spring; // 初期は春の設定
+
     private void Awake()
     {
         // Singletonパターン（インスタンスがすでに存在しない場合のみ新しく作成）
@@ -72,7 +83,7 @@ public class GameManager : MonoBehaviour
         ForceResumeGame();  // 初回ウェーブ開始時の一時停止解除を強制
         StartWave();  // 最初のウェーブ開始
 
-        // 餌の初期在庫を0に設定
+        // 餃の初期在庫を0に設定
         foreach (ResourceType resource in System.Enum.GetValues(typeof(ResourceType)))
         {
             inventory[resource] = 0;
@@ -121,7 +132,7 @@ public class GameManager : MonoBehaviour
     {
         isPaused = !isPaused; // 現在の一時停止状態を反転
         ApplyPauseState(); // 状態に応じた処理を適用
-        Debug.Log("ゲームは " + (isPaused ? "一時停止中" : "再開中"));
+        Debug.Log("Game " + (isPaused ? "Paused" : "Resumed"));
     }
 
     // 一時停止を強制的に解除するメソッド
@@ -184,7 +195,7 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        // 味方キャラクターの処理（移動と攻撃を制御）
+        // 命作キャラの処理（移動と攻撃を制御）
         GameObject[] allys = GameObject.FindGameObjectsWithTag("Ally");
         foreach (GameObject ally in allys)
         {
@@ -211,7 +222,7 @@ public class GameManager : MonoBehaviour
 
 
 
-        Debug.Log("ゲームは " + (isPaused ? "一時停止中" : "再開中"));
+        Debug.Log("Game " + (isPaused ? "Paused" : "Resumed"));
     }
 
     // 新しいウェーブを開始するメソッド
@@ -220,18 +231,32 @@ public class GameManager : MonoBehaviour
         ForceResumeGame();  // ウェーブがスタートしたら一時停止解除
         nextwavebutton.SetActive(false); // 次のウェーブボタンを非表示
         currentWave++; // 現在のウェーブ数を増加
+        Debug.Log("Current Season: " + currentSeason); // 現在のシーズンをデバッグログに表示
         waveTimer = waveDuration; // ウェーブのタイマーをリセット
-        Debug.Log("ウェーブ " + currentWave + " が開始されました");
+        Debug.Log("Wave " + currentWave + " started");
 
         WaveStarted?.Invoke(); // ウェーブ開始イベントを発火
 
         // 特定のウェーブ番号で敵が攻めてくることを表示
         if (currentWave % 3 == 0 || currentWave % 4 == 0)
         {
-            Debug.Log("ウェーブ " + currentWave + " で敵が攻めてきます");
+            Debug.Log("Wave " + currentWave + " has enemies attacking");
         }
 
         ConvertFeedToFish();
+
+        // 7ウェーブごとに季節を変える
+        if (currentWave % 7 == 0)
+        {
+            ChangeSeason();
+        }
+    }
+
+    // 季節を変えるメソッド
+    private void ChangeSeason()
+    {
+        currentSeason = (Season)(((int)currentSeason + 1) % System.Enum.GetValues(typeof(Season)).Length);
+        Debug.Log("Season changed to " + currentSeason);
     }
 
     void ConvertFeedToFish()
@@ -241,17 +266,17 @@ public class GameManager : MonoBehaviour
 
         foreach (GameObject feed in feeds)
         {
-            // 餌オブジェクトをランダムな魚に変換
+            // 餃オブジェクトをランダムな魚に変換
             int randomIndex = Random.Range(0, fishPrefabs.Count);
             GameObject fish = Instantiate(fishPrefabs[randomIndex], feed.transform.position, feed.transform.rotation);
 
-            // 餌オブジェクトを削除（必要であれば）
+            // 餃オブジェクトを削除（必要であれば）
             Destroy(feed);
         }
     }
 
     // 次のウェーブボタンを表示するメソッド
-    public void ShowNextWaveButton()    
+    public void ShowNextWaveButton()
     {
         isPaused = true; // 一時停止状態にする
         ApplyPauseState(); // ゲームの状態を更新
@@ -268,11 +293,11 @@ public class GameManager : MonoBehaviour
             UpdateResourceUI(); // UIを更新
         }
     }
-    // FeedUIManagerから呼び出され、選択された餌タイプを設定するメソッド
+    // FeedUIManagerから呼び出され、選択された餃タイプを設定するメソッド
     public void SetSelectedFeedType(ResourceType feedType)
     {
         SelectedFeedType = feedType;
-        Debug.Log("GameManagerで選択された餌タイプ: " + SelectedFeedType);
+        Debug.Log("Selected Feed Type: " + SelectedFeedType);
     }
 
     //FishUIManagerから呼び出され、選択した魚タイプを設定するメソッド
@@ -292,20 +317,20 @@ public class GameManager : MonoBehaviour
         feedCText.text = "Feed C: " + inventory[ResourceType.FeedC];
         urokoText.text = "Uroko: " + inventory[ResourceType.Uroko];
         pearlText.text = "Pearl: " + inventory[ResourceType.Pearl];
-        Kani.text ="×" + finventory[ResourceFishType.Kani].ToString();
-        Tyoutyou.text = "×" + finventory[ResourceFishType.Tyoutyou].ToString();
-        Kaisou.text = "×" + finventory[ResourceFishType.Kaisou].ToString();
-        Syako.text = "×" + finventory[ResourceFishType.Syako].ToString();
-        Koban.text = "×" + finventory[ResourceFishType.Koban].ToString();
-        Teppou.text = "×" + finventory[ResourceFishType.Teppou].ToString();
-        Manta.text = "×" + finventory[ResourceFishType.Manta].ToString();
-        Uni.text = "×" + finventory[ResourceFishType.Uni].ToString();
+        Kani.text = "x" + finventory[ResourceFishType.Kani].ToString();
+        Tyoutyou.text = "x" + finventory[ResourceFishType.Tyoutyou].ToString();
+        Kaisou.text = "x" + finventory[ResourceFishType.Kaisou].ToString();
+        Syako.text = "x" + finventory[ResourceFishType.Syako].ToString();
+        Koban.text = "x" + finventory[ResourceFishType.Koban].ToString();
+        Teppou.text = "x" + finventory[ResourceFishType.Teppou].ToString();
+        Manta.text = "x" + finventory[ResourceFishType.Manta].ToString();
+        Uni.text = "x" + finventory[ResourceFishType.Uni].ToString();
     }
 
     // ゲームオーバー処理
     public void GameOver()
     {
         gameOverPanel.SetActive(true);
-        Debug.Log("ゲームオーバー");
+        Debug.Log("Game Over");
     }
 }
