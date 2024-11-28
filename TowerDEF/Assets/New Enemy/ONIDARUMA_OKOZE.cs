@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.AI;
 
-public class ONIDARUMA_OKOZE : MonoBehaviour, IDamageable
+public class ONIDARUMA_OKOZE : MonoBehaviour, IDamageable, IStunnable
 {
     public string primaryTargetTag = "koukaku"; // 優先ターゲットのタグを設定
     public string secondaryTargetTag = "Ally"; // 次に優先するターゲットのタグ
@@ -29,6 +29,10 @@ public class ONIDARUMA_OKOZE : MonoBehaviour, IDamageable
     private float originalSpeed;
     private bool poisonEffectApplied = false;
 
+    // スタン関連の設定
+    private bool isStunned = false;
+    private float stunEndTime;
+
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
@@ -40,6 +44,18 @@ public class ONIDARUMA_OKOZE : MonoBehaviour, IDamageable
 
     void Update()
     {
+        if (isStunned)
+        {
+            if (Time.time > stunEndTime)
+            {
+                RemoveStunEffect();
+            }
+            else
+            {
+                return; // スタン中は何もしない
+            }
+        }
+
         if (isPoisoned)
         {
             // 麻痺毒の効果が続く間、移動速度と攻撃クールダウンが減少する
@@ -164,6 +180,21 @@ public class ONIDARUMA_OKOZE : MonoBehaviour, IDamageable
             poisonEffectApplied = true;
             Debug.Log($"{name} が麻痺毒の効果を受けました。持続時間: {duration}秒、スロー効果: {slowEffect}");
         }
+    }
+
+    public void Stun(float duration)
+    {
+        isStunned = true;
+        stunEndTime = Time.time + duration;
+        agent.isStopped = true; // スタン中は移動を止める
+        Debug.Log($"{name} がスタン状態になりました。持続時間: {duration}秒");
+    }
+
+    private void RemoveStunEffect()
+    {
+        isStunned = false;
+        agent.isStopped = false; // 移動を再開する
+        Debug.Log($"{name} のスタン効果が解除されました。");
     }
 
     private void RemovePoisonEffect()
