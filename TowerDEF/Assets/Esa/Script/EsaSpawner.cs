@@ -6,6 +6,9 @@ public class EsaSpawner : MonoBehaviour
     public GameObject esa1Prefab; // OkiaMi用Prefab
     public GameObject esa2Prefab; // Benthos用Prefab
     public GameObject esa3Prefab; // Plankton用Prefab
+    public GameObject esa4Prefab; //コマセ
+    public GameObject esa5Prefab; //複合餌
+    public GameObject esa6Prefab; //何か
 
     public Transform planeArea; // 餌を置くプレーンの領域
     public int maxEsaCount = 4; // 餌の最大設置数
@@ -98,6 +101,15 @@ public class EsaSpawner : MonoBehaviour
                 break;
             case GameManager.ResourceType.Plankton:
                 esaPrefab = esa3Prefab;
+                break;
+            case GameManager.ResourceType.FeedA:
+                esaPrefab = esa4Prefab;
+                break;
+            case GameManager.ResourceType.FeedB:
+                esaPrefab = esa5Prefab;
+                break;
+            case GameManager.ResourceType.FeedC:
+                esaPrefab = esa6Prefab;
                 break;
         }
 

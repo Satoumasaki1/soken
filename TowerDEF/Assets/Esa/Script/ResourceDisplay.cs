@@ -3,9 +3,7 @@ using UnityEngine;
 
 public class ResourceDisplay : MonoBehaviour
 {
-    [SerializeField] private TMP_Text okiaMiText;  // OkiaMiの在庫表示用
-    [SerializeField] private TMP_Text benthosText;  // Benthosの在庫表示用
-    [SerializeField] private TMP_Text planktonText;  // Planktonの在庫表示用
+    [SerializeField] private TMP_Text okiaMiText, benthosText, planktonText, komasetext,mixpelettext,baiofido;
 
     void Update()
     {

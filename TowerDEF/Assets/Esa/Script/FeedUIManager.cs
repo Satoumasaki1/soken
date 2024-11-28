@@ -1,10 +1,11 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using System.Collections.Generic; // 辞書のために追加
 
 public class FeedUIManager : MonoBehaviour
 {
-    // UIテキストまたはImageコンポーネント（餌の種類を表示）
+    // UIテキスト（餌の種類を表示）
     [SerializeField]
     public TextMeshProUGUI feedTypeText;
 
@@ -13,6 +14,17 @@ public class FeedUIManager : MonoBehaviour
 
     // UIボタンのリスト（餌のボタン）
     [SerializeField] private Button[] feedButtons;
+
+    // 餌の名前を日本語で表示するための辞書
+    private Dictionary<GameManager.ResourceType, string> feedTypeNames = new Dictionary<GameManager.ResourceType, string>
+    {
+        { GameManager.ResourceType.OkiaMi, "オキアミ" },
+        { GameManager.ResourceType.Benthos, "ベントス" },
+        { GameManager.ResourceType.Plankton, "プランクトン" },
+        { GameManager.ResourceType.FeedA, "コマセ" },
+        { GameManager.ResourceType.FeedB, "ミックスペレット" },
+        { GameManager.ResourceType.FeedC, "バイオフィード" }
+    };
 
     private void Start()
     {
@@ -29,6 +41,8 @@ public class FeedUIManager : MonoBehaviour
 
         // 最初に在庫の更新を行う
         UpdateButtonStates();
+        //最初に持っている餌の情報をGameManagerに通知する
+        SetFeedType(GameManager.ResourceType.OkiaMi);
     }
 
     // 餌の種類を選択し、GameManagerに通知するメソッド
@@ -40,30 +54,27 @@ public class FeedUIManager : MonoBehaviour
         UpdateFeedTypeUI(); // 餌タイプが変更された際にUIを更新
     }
 
-    // 餌の種類を保持するメソッド（ボタンから呼び出される）
-    /*public void SelectFeed(int feedTypeIndex)
-    {
-        GameManager.ResourceType selectedFeed = (GameManager.ResourceType)feedTypeIndex;
-
-        // 在庫がある場合のみ餌を保持
-        if (gameManager.inventory[selectedFeed] > 0) // inventoryを使用
-        {
-            GameManager.Instance.SelectedFeedType = selectedFeed; // GameManagerのSelectedFeedTypeを更新
-            UpdateFeedTypeUI();
-        }
-        else
-        {
-            Debug.Log($"{selectedFeed} の在庫がありません");
-        }
-    }*/
-
     // UI表示を更新するメソッド
     private void UpdateFeedTypeUI()
     {
-        // GameManagerのSelectedFeedTypeを参照してUIを更新
-        feedTypeText.text = GameManager.Instance.SelectedFeedType.HasValue
-            ? GameManager.Instance.SelectedFeedType.Value.ToString() // 選択された餌の名前を表示
-            : "No Feed Selected";
+        if (GameManager.Instance.SelectedFeedType.HasValue)
+        {
+            GameManager.ResourceType selectedFeed = GameManager.Instance.SelectedFeedType.Value;
+
+            // 日本語の餌名を取得して表示
+            if (feedTypeNames.TryGetValue(selectedFeed, out string feedName))
+            {
+                feedTypeText.text = feedName;
+            }
+            else
+            {
+                feedTypeText.text = "不明な餌"; // 辞書にない場合
+            }
+        }
+        else
+        {
+            feedTypeText.text = "餌が選択されていません";
+        }
     }
 
     // 餌のボタンの状態（有効/無効）を在庫に基づいて更新
@@ -75,16 +86,4 @@ public class FeedUIManager : MonoBehaviour
             feedButtons[i].interactable = gameManager.inventory[feedType] > 0; // inventoryを使用してボタンの有効/無効を設定
         }
     }
-
-    // 魚をクリックしたときに呼び出されるメソッド
-    /*public void TryFeedFish(Fish fish)
-    {
-        if (SelectedFeedType.HasValue && gameManager.inventory[(int)SelectedFeedType.Value] > 0)
-        {
-            gameManager.GiveFoodToFish(fish, SelectedFeedType.Value); // 魚に餌を与える
-            UpdateButtonStates(); // 在庫が減ったのでボタンを更新
-            SelectedFeedType = null; // 餌をリセット
-            UpdateFeedTypeUI();
-        }
-    }*/
 }
