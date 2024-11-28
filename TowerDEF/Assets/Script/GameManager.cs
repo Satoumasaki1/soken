@@ -61,6 +61,7 @@ public class GameManager : MonoBehaviour
     }
 
     public Season currentSeason = Season.Spring; // 初期は春の設定
+    private Season? previousSeason = null; // 前のシーズンを保持する変数
 
     private void Awake()
     {
@@ -220,8 +221,6 @@ public class GameManager : MonoBehaviour
             }
         }
 
-
-
         Debug.Log("Game " + (isPaused ? "Paused" : "Resumed"));
     }
 
@@ -250,13 +249,33 @@ public class GameManager : MonoBehaviour
         {
             ChangeSeason();
         }
+
+        ApplySeasonalEffects(); // ウェーブ開始時に季節の効果を適用
     }
 
     // 季節を変えるメソッド
     private void ChangeSeason()
     {
-        currentSeason = (Season)(((int)currentSeason + 1) % System.Enum.GetValues(typeof(Season)).Length);
-        Debug.Log("Season changed to " + currentSeason);
+        if (currentSeason != previousSeason)
+        {
+            previousSeason = currentSeason;
+            currentSeason = (Season)(((int)currentSeason + 1) % System.Enum.GetValues(typeof(Season)).Length);
+            Debug.Log("Season changed to " + currentSeason);
+        }
+    }
+
+    // 季節の効果を全生物に適用するメソッド
+    private void ApplySeasonalEffects()
+    {
+        GameObject[] allCreatures = GameObject.FindGameObjectsWithTag("Ally");
+        foreach (GameObject creature in allCreatures)
+        {
+            ISeasonEffect seasonEffect = creature.GetComponent<ISeasonEffect>();
+            if (seasonEffect != null)
+            {
+                seasonEffect.ApplySeasonEffect(currentSeason);
+            }
+        }
     }
 
     void ConvertFeedToFish()
@@ -334,3 +353,5 @@ public class GameManager : MonoBehaviour
         Debug.Log("Game Over");
     }
 }
+
+
