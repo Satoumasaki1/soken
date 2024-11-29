@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.AI;
 
-public class ONIDARUMA_OKOZE : MonoBehaviour, IDamageable, IStunnable
+public class ONIDARUMA_OKOZE : MonoBehaviour, IDamageable, IStunnable, ISeasonEffect
 {
     public string primaryTargetTag = "koukaku"; // 優先ターゲットのタグを設定
     public string secondaryTargetTag = "Ally"; // 次に優先するターゲットのタグ
@@ -33,12 +33,18 @@ public class ONIDARUMA_OKOZE : MonoBehaviour, IDamageable, IStunnable
     private bool isStunned = false;
     private float stunEndTime;
 
+    // シーズン効果関連の設定
+    private bool seasonEffectApplied = false;
+    private GameManager.Season currentSeason;
+    private int originalHealth;
+
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
         agent.speed = moveSpeed; // 移動速度を設定
         originalAttackCooldown = attackCooldown;
         originalSpeed = agent.speed;
+        originalHealth = health;
         FindTarget();
     }
 
@@ -210,5 +216,48 @@ public class ONIDARUMA_OKOZE : MonoBehaviour, IDamageable, IStunnable
     {
         // ONIDARUMA_OKOZEが倒れた際の処理（例えば破壊など）
         Destroy(gameObject);
+    }
+
+    // シーズンの効果を適用するメソッド
+    public void ApplySeasonEffect(GameManager.Season currentSeason)
+    {
+        if (seasonEffectApplied && this.currentSeason == currentSeason) return;
+
+        ResetSeasonEffect();
+        this.currentSeason = currentSeason;
+
+        switch (currentSeason)
+        {
+            case GameManager.Season.Spring:
+                attackDamage = Mathf.RoundToInt(attackDamage * 0.7f);
+                health = Mathf.RoundToInt(health * 0.8f);
+                Debug.Log($"{name} は春のシーズンで弱体化しました。攻撃力: {attackDamage}, 体力: {health}");
+                break;
+            case GameManager.Season.Summer:
+                attackDamage = Mathf.RoundToInt(attackDamage * 1.3f);
+                health = Mathf.RoundToInt(health * 1.2f);
+                Debug.Log($"{name} は夏のシーズンで強化されました。攻撃力: {attackDamage}, 体力: {health}");
+                break;
+            case GameManager.Season.Autumn:
+                attackDamage = Mathf.RoundToInt(attackDamage * 0.7f);
+                health = Mathf.RoundToInt(health * 0.8f);
+                Debug.Log($"{name} は秋のシーズンで弱体化しました。攻撃力: {attackDamage}, 体力: {health}");
+                break;
+            case GameManager.Season.Winter:
+                attackDamage = Mathf.RoundToInt(attackDamage * 1.3f);
+                health = Mathf.RoundToInt(health * 1.2f);
+                Debug.Log($"{name} は冬のシーズンで強化されました。攻撃力: {attackDamage}, 体力: {health}");
+                break;
+        }
+
+        seasonEffectApplied = true;
+    }
+
+    public void ResetSeasonEffect()
+    {
+        attackDamage = 30;
+        health = originalHealth;
+        seasonEffectApplied = false;
+        Debug.Log($"{name} のシーズン効果がリセットされました。攻撃力: {attackDamage}, 体力: {health}");
     }
 }

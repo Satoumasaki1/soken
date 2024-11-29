@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.AI;
 
-public class KAZIKI : MonoBehaviour, IDamageable, IStunnable
+public class KAZIKI : MonoBehaviour, IDamageable, IStunnable, ISeasonEffect
 {
     public string primaryTargetTag = "Ally"; // 優先ターゲットのタグを設定
     public string fallbackTag = "Base"; // 最後に狙うターゲットのタグ
@@ -34,12 +34,18 @@ public class KAZIKI : MonoBehaviour, IDamageable, IStunnable
     private bool isStunned = false;
     private float stunEndTime;
 
+    // シーズン効果関連の設定
+    private bool seasonEffectApplied = false;
+    private GameManager.Season currentSeason;
+    private int originalHealth;
+
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
         agent.speed = moveSpeed; // 移動速度を設定
         originalAttackCooldown = attackCooldown;
         originalSpeed = agent.speed;
+        originalHealth = health;
         FindTarget();
     }
 
@@ -197,5 +203,51 @@ public class KAZIKI : MonoBehaviour, IDamageable, IStunnable
         // KAZIKIが倒れた際の処理（例えば破壊など）
         Debug.Log($"{name} が倒れました。");
         Destroy(gameObject);
+    }
+
+    // シーズンの効果を適用するメソッド
+    public void ApplySeasonEffect(GameManager.Season currentSeason)
+    {
+        if (seasonEffectApplied && this.currentSeason == currentSeason) return;
+
+        ResetSeasonEffect();
+        this.currentSeason = currentSeason;
+
+        switch (currentSeason)
+        {
+            case GameManager.Season.Spring:
+                moveSpeed = originalSpeed * 0.9f;
+                attackDamage = Mathf.RoundToInt(attackDamage * 0.9f);
+                Debug.Log("春のデバフが適用されました: 移動速度と攻撃力が減少");
+                break;
+            case GameManager.Season.Summer:
+                health += 10;
+                attackDamage = Mathf.RoundToInt(attackDamage * 1.2f);
+                Debug.Log("夏のバフが適用されました: 体力と攻撃力が増加");
+                break;
+            case GameManager.Season.Autumn:
+                moveSpeed = originalSpeed * 0.8f;
+                attackDamage = Mathf.RoundToInt(attackDamage * 0.8f);
+                health -= 10;
+                Debug.Log("秋のデバフが適用されました: 移動速度と攻撃力が減少");
+                break;
+            case GameManager.Season.Winter:
+                attackDamage = Mathf.RoundToInt(attackDamage * 1.3f);
+                health += 15;
+                Debug.Log("冬のバフが適用されました: 体力と攻撃力が増加");
+                break;
+        }
+
+        seasonEffectApplied = true;
+    }
+
+    // シーズン効果のリセット
+    public void ResetSeasonEffect()
+    {
+        moveSpeed = originalSpeed;
+        attackDamage = 40; // 元の攻撃力に戻す
+        health = originalHealth; // 元の体力に戻す
+        seasonEffectApplied = false;
+        Debug.Log("シーズン効果がリセットされました。");
     }
 }

@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.AI;
 
-public class ISEEBI : MonoBehaviour, IDamageable, IStunnable
+public class ISEEBI : MonoBehaviour, IDamageable, IStunnable, ISeasonEffect
 {
     public string targetTag = "koukaku"; // 攻撃対象のタグを設定
     public string fallbackTag = "Base"; // ターゲットが見つからなかった場合の代替タグ
@@ -27,6 +27,9 @@ public class ISEEBI : MonoBehaviour, IDamageable, IStunnable
     // スタン関連の設定
     private bool isStunned = false;
     private float stunEndTime;
+
+    // シーズン効果適用フラグ
+    private bool seasonEffectApplied = false;
 
     void Start()
     {
@@ -155,5 +158,46 @@ public class ISEEBI : MonoBehaviour, IDamageable, IStunnable
     {
         // ISEEBIが倒れた際の処理（例えば破壊など）
         Destroy(gameObject);
+    }
+
+    // シーズンの効果を適用するメソッド
+    public void ApplySeasonEffect(GameManager.Season currentSeason)
+    {
+        if (seasonEffectApplied) return;
+
+        switch (currentSeason)
+        {
+            case GameManager.Season.Spring:
+                attackDamage = Mathf.RoundToInt(attackDamage * 0.85f);
+                health = Mathf.Max(health - 2, 1);
+                Debug.Log("春のデバフが適用されました: 体力と攻撃力が減少");
+                break;
+            case GameManager.Season.Summer:
+                attackDamage = Mathf.RoundToInt(attackDamage * 1.2f);
+                health += 5;
+                Debug.Log("夏のバフが適用されました: 体力と攻撃力が増加");
+                break;
+            case GameManager.Season.Autumn:
+                attackDamage = Mathf.RoundToInt(attackDamage * 0.75f);
+                health = Mathf.Max(health - 4, 1);
+                Debug.Log("秋のデバフが適用されました: 体力と攻撃力が減少");
+                break;
+            case GameManager.Season.Winter:
+                attackDamage = Mathf.RoundToInt(attackDamage * 1.3f);
+                health += 8;
+                Debug.Log("冬のバフが適用されました: 体力と攻撃力が増加");
+                break;
+        }
+
+        seasonEffectApplied = true;
+    }
+
+    // シーズンの効果をリセットするメソッド
+    public void ResetSeasonEffect()
+    {
+        attackDamage = 5;
+        health = 15;
+        seasonEffectApplied = false;
+        Debug.Log("シーズン効果がリセットされました。");
     }
 }
