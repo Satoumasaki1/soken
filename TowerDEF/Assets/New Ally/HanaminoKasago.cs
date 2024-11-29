@@ -1,7 +1,7 @@
 using UnityEngine;
 using System.Collections;
 
-public class HanaminoKasago : MonoBehaviour, IDamageable
+public class HanaminoKasago : MonoBehaviour, IDamageable, ISeasonEffect
 {
     // HanaminoKasagoの体力と最大体力
     public float buffMultiplier = 1.5f; // 攻撃バフの倍率
@@ -21,6 +21,8 @@ public class HanaminoKasago : MonoBehaviour, IDamageable
     [SerializeField]
     private GameManager gm;
 
+    private bool seasonEffectApplied = false;
+
     void Start()
     {
         if (gm == null)
@@ -39,7 +41,6 @@ public class HanaminoKasago : MonoBehaviour, IDamageable
         if (gm != null && gm.isPaused) return;
         ApplyParalyticPoisonEffect();
         ApplyIrukaBuff();
-
     }
 
     private void OnMouseDown()
@@ -181,8 +182,6 @@ public class HanaminoKasago : MonoBehaviour, IDamageable
         }
     }
 
-
-
     // HanaminoKasagoが倒れたときの処理
     private void Die()
     {
@@ -193,5 +192,50 @@ public class HanaminoKasago : MonoBehaviour, IDamageable
     {
         Gizmos.color = Color.green;
         Gizmos.DrawWireSphere(transform.position, detectionRadius);
+    }
+
+    // シーズンの効果を適用するメソッド
+    public void ApplySeasonEffect(GameManager.Season currentSeason)
+    {
+        if (seasonEffectApplied) return;
+
+        switch (currentSeason)
+        {
+            case GameManager.Season.Spring:
+                maxHealth += 10;
+                health = Mathf.Min(health + 10, maxHealth);
+                attackDamage = Mathf.RoundToInt(originalAttackDamage * 1.1f);
+                Debug.Log("春のバフが適用されました: 体力と攻撃力が少し上昇");
+                break;
+            case GameManager.Season.Summer:
+                maxHealth -= 5;
+                health = Mathf.Min(health, maxHealth);
+                Debug.Log("夏のデバフが適用されました: 体力が減少");
+                break;
+            case GameManager.Season.Autumn:
+                maxHealth += 15;
+                health = Mathf.Min(health + 15, maxHealth);
+                attackDamage = Mathf.RoundToInt(originalAttackDamage * 1.2f);
+                Debug.Log("秋のバフが適用されました: 体力と攻撃力が上昇");
+                break;
+            case GameManager.Season.Winter:
+                maxHealth -= 10;
+                health = Mathf.Min(health, maxHealth);
+                attackDamage = Mathf.RoundToInt(originalAttackDamage * 0.9f);
+                Debug.Log("冬のデバフが適用されました: 体力と攻撃力が減少");
+                break;
+        }
+
+        seasonEffectApplied = true;
+    }
+
+    // シーズンの効果をリセットするメソッド
+    public void ResetSeasonEffect()
+    {
+        maxHealth = 20;
+        health = Mathf.Min(health, maxHealth);
+        attackDamage = originalAttackDamage;
+        seasonEffectApplied = false;
+        Debug.Log("シーズン効果がリセットされました。");
     }
 }

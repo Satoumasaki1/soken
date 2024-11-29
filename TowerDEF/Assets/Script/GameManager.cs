@@ -250,6 +250,7 @@ public class GameManager : MonoBehaviour
             ChangeSeason();
         }
 
+        ResetSeasonalEffects(); // 季節のバフとデバフをリセット
         ApplySeasonalEffects(); // ウェーブ開始時に季節の効果を適用
     }
 
@@ -261,6 +262,20 @@ public class GameManager : MonoBehaviour
             previousSeason = currentSeason;
             currentSeason = (Season)(((int)currentSeason + 1) % System.Enum.GetValues(typeof(Season)).Length);
             Debug.Log("Season changed to " + currentSeason);
+        }
+    }
+
+    // 季節のバフとデバフをリセットするメソッド
+    private void ResetSeasonalEffects()
+    {
+        GameObject[] allCreatures = GameObject.FindGameObjectsWithTag("Ally");
+        foreach (GameObject creature in allCreatures)
+        {
+            ISeasonEffect seasonEffect = creature.GetComponent<ISeasonEffect>();
+            if (seasonEffect != null)
+            {
+                seasonEffect.ResetSeasonEffect();
+            }
         }
     }
 
@@ -353,5 +368,3 @@ public class GameManager : MonoBehaviour
         Debug.Log("Game Over");
     }
 }
-
-

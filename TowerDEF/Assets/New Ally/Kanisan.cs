@@ -1,7 +1,7 @@
 using UnityEngine;
 using System.Collections;
 
-public class Kanisan : MonoBehaviour, IDamageable
+public class Kanisan : MonoBehaviour, IDamageable, ISeasonEffect
 {
     // Kanisanの体力
     public int health = 10;
@@ -22,6 +22,8 @@ public class Kanisan : MonoBehaviour, IDamageable
     // GameManagerの参照をインスペクターから設定できるようにする
     [SerializeField]
     private GameManager gm;
+
+    private bool seasonEffectApplied = false;
 
     void Start()
     {
@@ -246,5 +248,50 @@ public class Kanisan : MonoBehaviour, IDamageable
         // シーンビューで検知範囲を可視化
         Gizmos.color = Color.blue;
         Gizmos.DrawWireSphere(transform.position, detectionRadius);
+    }
+
+    // シーズンの効果を適用するメソッド
+    public void ApplySeasonEffect(GameManager.Season currentSeason)
+    {
+        if (seasonEffectApplied) return;
+
+        switch (currentSeason)
+        {
+            case GameManager.Season.Spring:
+                maxHealth += 10;
+                health = Mathf.Min(health + 10, maxHealth);
+                attackDamage = Mathf.RoundToInt(attackDamage * 1.1f);
+                Debug.Log("春のバフが適用されました: 体力と攻撃力が少し上昇");
+                break;
+            case GameManager.Season.Summer:
+                maxHealth -= 5;
+                health = Mathf.Min(health, maxHealth);
+                Debug.Log("夏のデバフが適用されました: 体力が減少");
+                break;
+            case GameManager.Season.Autumn:
+                maxHealth += 15;
+                health = Mathf.Min(health + 15, maxHealth);
+                attackDamage = Mathf.RoundToInt(attackDamage * 1.2f);
+                Debug.Log("秋のバフが適用されました: 体力と攻撃力が上昇");
+                break;
+            case GameManager.Season.Winter:
+                maxHealth -= 10;
+                health = Mathf.Min(health, maxHealth);
+                attackDamage = Mathf.RoundToInt(attackDamage * 0.9f);
+                Debug.Log("冬のデバフが適用されました: 体力と攻撃力が減少");
+                break;
+        }
+
+        seasonEffectApplied = true;
+    }
+
+    // シーズンの効果をリセットするメソッド
+    public void ResetSeasonEffect()
+    {
+        maxHealth = 10;
+        health = Mathf.Min(health, maxHealth);
+        attackDamage = originalAttackDamage;
+        seasonEffectApplied = false;
+        Debug.Log("シーズン効果がリセットされました。");
     }
 }
