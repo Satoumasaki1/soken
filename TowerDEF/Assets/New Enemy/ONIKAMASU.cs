@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.AI;
 
-public class ONIKAMASU : MonoBehaviour, IDamageable, IStunnable
+public class ONIKAMASU : MonoBehaviour, IDamageable, IStunnable, ISeasonEffect
 {
     public string primaryTargetTag = "koukaku"; // 優先ターゲットのタグを設定
     public string secondaryTargetTag = "Ally"; // 次に優先するターゲットのタグ
@@ -29,12 +29,18 @@ public class ONIKAMASU : MonoBehaviour, IDamageable, IStunnable
     private bool isStunned = false;
     private float stunEndTime;
 
+    // シーズン効果関連の設定
+    private bool seasonEffectApplied = false;
+    private GameManager.Season currentSeason;
+    private int originalHealth;
+
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
         agent.speed = moveSpeed; // 移動速度を設定
         originalAttackCooldown = attackCooldown;
         originalSpeed = agent.speed;
+        originalHealth = health;
         FindTarget();
     }
 
@@ -167,5 +173,52 @@ public class ONIKAMASU : MonoBehaviour, IDamageable, IStunnable
         // ONIKAMASUが倒れた際の処理（例えば破壊など）
         Debug.Log($"{name} が倒れました。");
         Destroy(gameObject);
+    }
+
+    // シーズンの効果を適用するメソッド
+    public void ApplySeasonEffect(GameManager.Season currentSeason)
+    {
+        if (seasonEffectApplied && this.currentSeason == currentSeason) return;
+
+        ResetSeasonEffect();
+        this.currentSeason = currentSeason;
+
+        switch (currentSeason)
+        {
+            case GameManager.Season.Spring:
+                attackDamage = Mathf.RoundToInt(attackDamage * 1.4f);
+                moveSpeed = originalSpeed * 1.3f;
+                agent.speed = moveSpeed;
+                Debug.Log($"{name} は春のシーズンで強化されました。攻撃力: {attackDamage}, 移動速度: {moveSpeed}");
+                break;
+            case GameManager.Season.Summer:
+                attackDamage = Mathf.RoundToInt(attackDamage * 1.6f);
+                moveSpeed = originalSpeed * 1.5f;
+                agent.speed = moveSpeed;
+                Debug.Log($"{name} は夏のシーズンで大幅に強化されました。攻撃力: {attackDamage}, 移動速度: {moveSpeed}");
+                break;
+            case GameManager.Season.Autumn:
+                attackDamage = Mathf.RoundToInt(attackDamage * 0.8f);
+                moveSpeed = originalSpeed * 0.8f;
+                agent.speed = moveSpeed;
+                Debug.Log($"{name} は秋のシーズンで弱体化しました。攻撃力: {attackDamage}, 移動速度: {moveSpeed}");
+                break;
+            case GameManager.Season.Winter:
+                attackDamage = Mathf.RoundToInt(attackDamage * 0.6f);
+                moveSpeed = originalSpeed * 0.7f;
+                agent.speed = moveSpeed;
+                Debug.Log($"{name} は冬のシーズンで大幅に弱体化しました。攻撃力: {attackDamage}, 移動速度: {moveSpeed}");
+                break;
+        }
+
+        seasonEffectApplied = true;
+    }
+
+    public void ResetSeasonEffect()
+    {
+        attackDamage = 10;
+        moveSpeed = originalSpeed;
+        agent.speed = moveSpeed;
+        seasonEffectApplied = false;
     }
 }

@@ -1,37 +1,45 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using UnityEngine.AI;
 
-public class OOKAMIUO : MonoBehaviour, IDamageable, IStunnable
+public class OOKAMIUO : MonoBehaviour, IDamageable, IStunnable, ISeasonEffect
 {
-    public string targetTag = "koukaku"; // UŒ‚‘ÎÛ‚Ìƒ^ƒO‚ğİ’è
-    public string fallbackTag = "Base"; // ƒ^[ƒQƒbƒg‚ªŒ©‚Â‚©‚ç‚È‚©‚Á‚½ê‡‚Ì‘ã‘Öƒ^ƒO
+    public string targetTag = "koukaku"; // æ”»æ’ƒå¯¾è±¡ã®ã‚¿ã‚°ã‚’è¨­å®š
+    public string fallbackTag = "Base"; // ã‚¿ãƒ¼ã‚²ãƒƒãƒˆãŒè¦‹ã¤ã‹ã‚‰ãªã‹ã£ãŸå ´åˆã®ä»£æ›¿ã‚¿ã‚°
 
-    private Transform target; // ƒ^[ƒQƒbƒg‚ÌTransform
-    public int health = 25; // OOKAMIUO‚Ì‘Ì—Í
-    public int attackDamage = 8; // UŒ‚—Í
-    public float attackRange = 4f; // UŒ‚”ÍˆÍ
-    public float attackCooldown = 2f; // UŒ‚ƒN[ƒ‹ƒ_ƒEƒ“ŠÔ
+    private Transform target; // ã‚¿ãƒ¼ã‚²ãƒƒãƒˆã®Transform
+    public int health = 25; // OOKAMIUOã®ä½“åŠ›
+    public int attackDamage = 8; // æ”»æ’ƒåŠ›
+    public float attackRange = 4f; // æ”»æ’ƒç¯„å›²
+    public float attackCooldown = 2f; // æ”»æ’ƒã‚¯ãƒ¼ãƒ«ãƒ€ã‚¦ãƒ³æ™‚é–“
+    public float moveSpeed = 3.5f; // OOKAMIUOã®ç§»å‹•é€Ÿåº¦
 
     private float lastAttackTime;
     private NavMeshAgent agent;
 
-    // –ƒáƒ“ÅŠÖ˜A‚Ìİ’è
-    public bool isPoisoned = false; // –ƒáƒ“Åó‘Ô‚©‚Ç‚¤‚©
+    // éº»ç—¹æ¯’é–¢é€£ã®è¨­å®š
+    public bool isPoisoned = false; // éº»ç—¹æ¯’çŠ¶æ…‹ã‹ã©ã†ã‹
     private float poisonEndTime;
-    public float poisonSlowEffect = 0.5f; // –ƒáƒ“Å‚É‚æ‚éƒXƒs[ƒhŒ¸­—¦
+    public float poisonSlowEffect = 0.5f; // éº»ç—¹æ¯’ã«ã‚ˆã‚‹ã‚¹ãƒ”ãƒ¼ãƒ‰æ¸›å°‘ç‡
     private float originalAttackCooldown;
     private float originalSpeed;
     private bool poisonEffectApplied = false;
 
-    // ƒXƒ^ƒ“ŠÖ˜A‚Ìİ’è
+    // ã‚¹ã‚¿ãƒ³é–¢é€£ã®è¨­å®š
     private bool isStunned = false;
     private float stunEndTime;
+
+    // ã‚·ãƒ¼ã‚ºãƒ³åŠ¹æœé–¢é€£ã®è¨­å®š
+    private bool seasonEffectApplied = false;
+    private GameManager.Season currentSeason;
+    private int originalHealth;
 
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
+        agent.speed = moveSpeed; // ç§»å‹•é€Ÿåº¦ã‚’è¨­å®š
         originalAttackCooldown = attackCooldown;
         originalSpeed = agent.speed;
+        originalHealth = health;
         FindTarget();
     }
 
@@ -45,13 +53,13 @@ public class OOKAMIUO : MonoBehaviour, IDamageable, IStunnable
             }
             else
             {
-                return; // ƒXƒ^ƒ“’†‚Í‰½‚à‚µ‚È‚¢
+                return; // ã‚¹ã‚¿ãƒ³ä¸­ã¯ä½•ã‚‚ã—ãªã„
             }
         }
 
         if (isPoisoned)
         {
-            // –ƒáƒ“Å‚ÌŒø‰Ê‚ª‘±‚­ŠÔAˆÚ“®‘¬“x‚ÆUŒ‚ƒN[ƒ‹ƒ_ƒEƒ“‚ªŒ¸­‚·‚é
+            // éº»ç—¹æ¯’ã®åŠ¹æœãŒç¶šãé–“ã€ç§»å‹•é€Ÿåº¦ã¨æ”»æ’ƒã‚¯ãƒ¼ãƒ«ãƒ€ã‚¦ãƒ³ãŒæ¸›å°‘ã™ã‚‹
             if (Time.time > poisonEndTime)
             {
                 RemovePoisonEffect();
@@ -65,10 +73,10 @@ public class OOKAMIUO : MonoBehaviour, IDamageable, IStunnable
 
         if (target != null)
         {
-            // ƒ^[ƒQƒbƒg‚ÉŒü‚©‚Á‚ÄˆÚ“®‚·‚é
+            // ã‚¿ãƒ¼ã‚²ãƒƒãƒˆã«å‘ã‹ã£ã¦ç§»å‹•ã™ã‚‹
             agent.SetDestination(target.position);
 
-            // UŒ‚”ÍˆÍ“à‚Éƒ^[ƒQƒbƒg‚ª‚¢‚éê‡AUŒ‚‚·‚é
+            // æ”»æ’ƒç¯„å›²å†…ã«ã‚¿ãƒ¼ã‚²ãƒƒãƒˆãŒã„ã‚‹å ´åˆã€æ”»æ’ƒã™ã‚‹
             if (Vector3.Distance(transform.position, target.position) <= attackRange && Time.time > lastAttackTime + attackCooldown)
             {
                 AttackTarget();
@@ -79,7 +87,7 @@ public class OOKAMIUO : MonoBehaviour, IDamageable, IStunnable
 
     void FindTarget()
     {
-        // —Dæƒ^[ƒQƒbƒgikoukakuƒ^ƒOj‚ğ’T‚·
+        // å„ªå…ˆã‚¿ãƒ¼ã‚²ãƒƒãƒˆï¼ˆkoukakuã‚¿ã‚°ï¼‰ã‚’æ¢ã™
         GameObject koukakuTarget = GameObject.FindGameObjectWithTag(targetTag);
         if (koukakuTarget != null)
         {
@@ -87,7 +95,7 @@ public class OOKAMIUO : MonoBehaviour, IDamageable, IStunnable
             return;
         }
 
-        // koukaku‚ªŒ©‚Â‚©‚ç‚È‚¢ê‡ABaseƒ^ƒO‚Ìƒ^[ƒQƒbƒg‚ğ’T‚·
+        // koukakuãŒè¦‹ã¤ã‹ã‚‰ãªã„å ´åˆã€Baseã‚¿ã‚°ã®ã‚¿ãƒ¼ã‚²ãƒƒãƒˆã‚’æ¢ã™
         GameObject baseTarget = GameObject.FindGameObjectWithTag(fallbackTag);
         if (baseTarget != null)
         {
@@ -107,7 +115,7 @@ public class OOKAMIUO : MonoBehaviour, IDamageable, IStunnable
     public void TakeDamage(int damageAmount)
     {
         health -= damageAmount;
-        Debug.Log($"{name} ‚ªƒ_ƒ[ƒW‚ğó‚¯‚Ü‚µ‚½: {damageAmount}, c‚è‘Ì—Í: {health}");
+        Debug.Log($"{name} ãŒãƒ€ãƒ¡ãƒ¼ã‚¸ã‚’å—ã‘ã¾ã—ãŸ: {damageAmount}, æ®‹ã‚Šä½“åŠ›: {health}");
         if (health <= 0)
         {
             Die();
@@ -120,10 +128,10 @@ public class OOKAMIUO : MonoBehaviour, IDamageable, IStunnable
         poisonEndTime = Time.time + duration;
         if (!poisonEffectApplied)
         {
-            agent.speed = originalSpeed * slowEffect; // ˆÚ“®‘¬“x‚ğŒ¸­‚³‚¹‚é
-            attackCooldown = originalAttackCooldown * 2; // UŒ‚ƒN[ƒ‹ƒ_ƒEƒ“‚ğ’·‚­‚·‚é
+            agent.speed = originalSpeed * slowEffect; // ç§»å‹•é€Ÿåº¦ã‚’æ¸›å°‘ã•ã›ã‚‹
+            attackCooldown = originalAttackCooldown * 2; // æ”»æ’ƒã‚¯ãƒ¼ãƒ«ãƒ€ã‚¦ãƒ³ã‚’é•·ãã™ã‚‹
             poisonEffectApplied = true;
-            Debug.Log($"{name} ‚ª–ƒáƒ“Å‚ÌŒø‰Ê‚ğó‚¯‚Ü‚µ‚½B‘±ŠÔ: {duration}•bAƒXƒ[Œø‰Ê: {slowEffect}");
+            Debug.Log($"{name} ãŒéº»ç—¹æ¯’ã®åŠ¹æœã‚’å—ã‘ã¾ã—ãŸã€‚æŒç¶šæ™‚é–“: {duration}ç§’ã€ã‚¹ãƒ­ãƒ¼åŠ¹æœ: {slowEffect}");
         }
     }
 
@@ -131,30 +139,77 @@ public class OOKAMIUO : MonoBehaviour, IDamageable, IStunnable
     {
         isStunned = true;
         stunEndTime = Time.time + duration;
-        agent.isStopped = true; // ƒXƒ^ƒ“’†‚ÍˆÚ“®‚ğ~‚ß‚é
-        Debug.Log($"{name} ‚ªƒXƒ^ƒ“ó‘Ô‚É‚È‚è‚Ü‚µ‚½B‘±ŠÔ: {duration}•b");
+        agent.isStopped = true; // ã‚¹ã‚¿ãƒ³ä¸­ã¯ç§»å‹•ã‚’æ­¢ã‚ã‚‹
+        Debug.Log($"{name} ãŒã‚¹ã‚¿ãƒ³çŠ¶æ…‹ã«ãªã‚Šã¾ã—ãŸã€‚æŒç¶šæ™‚é–“: {duration}ç§’");
     }
 
     private void RemoveStunEffect()
     {
         isStunned = false;
-        agent.isStopped = false; // ˆÚ“®‚ğÄŠJ‚·‚é
-        Debug.Log($"{name} ‚ÌƒXƒ^ƒ“Œø‰Ê‚ª‰ğœ‚³‚ê‚Ü‚µ‚½B");
+        agent.isStopped = false; // ç§»å‹•ã‚’å†é–‹ã™ã‚‹
+        Debug.Log($"{name} ã®ã‚¹ã‚¿ãƒ³åŠ¹æœãŒè§£é™¤ã•ã‚Œã¾ã—ãŸã€‚");
     }
 
     private void RemovePoisonEffect()
     {
         isPoisoned = false;
-        agent.speed = originalSpeed; // ˆÚ“®‘¬“x‚ğŒ³‚É–ß‚·
-        attackCooldown = originalAttackCooldown; // UŒ‚ƒN[ƒ‹ƒ_ƒEƒ“‚ğŒ³‚É–ß‚·
+        agent.speed = originalSpeed; // ç§»å‹•é€Ÿåº¦ã‚’å…ƒã«æˆ»ã™
+        attackCooldown = originalAttackCooldown; // æ”»æ’ƒã‚¯ãƒ¼ãƒ«ãƒ€ã‚¦ãƒ³ã‚’å…ƒã«æˆ»ã™
         poisonEffectApplied = false;
-        Debug.Log($"{name} ‚Ì–ƒáƒ“Å‚ÌŒø‰Ê‚ª‰ğœ‚³‚ê‚Ü‚µ‚½B");
+        Debug.Log($"{name} ã®éº»ç—¹æ¯’ã®åŠ¹æœãŒè§£é™¤ã•ã‚Œã¾ã—ãŸã€‚");
     }
 
     private void Die()
     {
-        // OOKAMIUO‚ª“|‚ê‚½Û‚Ìˆ—i—á‚¦‚Î”j‰ó‚È‚Çj
-        Debug.Log($"{name} ‚ª“|‚ê‚Ü‚µ‚½B");
+        // OOKAMIUOãŒå€’ã‚ŒãŸéš›ã®å‡¦ç†ï¼ˆä¾‹ãˆã°ç ´å£Šãªã©ï¼‰
+        Debug.Log($"{name} ãŒå€’ã‚Œã¾ã—ãŸã€‚");
         Destroy(gameObject);
+    }
+
+    // ã‚·ãƒ¼ã‚ºãƒ³ã®åŠ¹æœã‚’é©ç”¨ã™ã‚‹ãƒ¡ã‚½ãƒƒãƒ‰
+    public void ApplySeasonEffect(GameManager.Season currentSeason)
+    {
+        if (seasonEffectApplied && this.currentSeason == currentSeason) return;
+
+        ResetSeasonEffect();
+        this.currentSeason = currentSeason;
+
+        switch (currentSeason)
+        {
+            case GameManager.Season.Spring:
+                attackDamage = Mathf.RoundToInt(attackDamage * 1.2f);
+                moveSpeed = originalSpeed * 1.1f;
+                agent.speed = moveSpeed;
+                Debug.Log($"{name} ã¯æ˜¥ã®ã‚·ãƒ¼ã‚ºãƒ³ã§å¼·åŒ–ã•ã‚Œã¾ã—ãŸã€‚æ”»æ’ƒåŠ›: {attackDamage}, ç§»å‹•é€Ÿåº¦: {moveSpeed}");
+                break;
+            case GameManager.Season.Summer:
+                attackDamage = Mathf.RoundToInt(attackDamage * 1.3f);
+                moveSpeed = originalSpeed * 1.2f;
+                agent.speed = moveSpeed;
+                Debug.Log($"{name} ã¯å¤ã®ã‚·ãƒ¼ã‚ºãƒ³ã§å¤§å¹…ã«å¼·åŒ–ã•ã‚Œã¾ã—ãŸã€‚æ”»æ’ƒåŠ›: {attackDamage}, ç§»å‹•é€Ÿåº¦: {moveSpeed}");
+                break;
+            case GameManager.Season.Autumn:
+                attackDamage = Mathf.RoundToInt(attackDamage * 0.8f);
+                moveSpeed = originalSpeed * 0.9f;
+                agent.speed = moveSpeed;
+                Debug.Log($"{name} ã¯ç§‹ã®ã‚·ãƒ¼ã‚ºãƒ³ã§å¼±ä½“åŒ–ã—ã¾ã—ãŸã€‚æ”»æ’ƒåŠ›: {attackDamage}, ç§»å‹•é€Ÿåº¦: {moveSpeed}");
+                break;
+            case GameManager.Season.Winter:
+                attackDamage = Mathf.RoundToInt(attackDamage * 0.6f);
+                moveSpeed = originalSpeed * 0.7f;
+                agent.speed = moveSpeed;
+                Debug.Log($"{name} ã¯å†¬ã®ã‚·ãƒ¼ã‚ºãƒ³ã§å¤§å¹…ã«å¼±ä½“åŒ–ã—ã¾ã—ãŸã€‚æ”»æ’ƒåŠ›: {attackDamage}, ç§»å‹•é€Ÿåº¦: {moveSpeed}");
+                break;
+        }
+
+        seasonEffectApplied = true;
+    }
+
+    public void ResetSeasonEffect()
+    {
+        attackDamage = 8;
+        moveSpeed = originalSpeed;
+        agent.speed = moveSpeed;
+        seasonEffectApplied = false;
     }
 }
