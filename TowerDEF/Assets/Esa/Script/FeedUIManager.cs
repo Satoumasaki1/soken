@@ -55,7 +55,7 @@ public class FeedUIManager : MonoBehaviour
     }
 
     // UI表示を更新するメソッド
-    private void UpdateFeedTypeUI()
+    public void UpdateFeedTypeUI()
     {
         if (GameManager.Instance.SelectedFeedType.HasValue)
         {
@@ -78,7 +78,7 @@ public class FeedUIManager : MonoBehaviour
     }
 
     // 餌のボタンの状態（有効/無効）を在庫に基づいて更新
-    private void UpdateButtonStates()
+    public void UpdateButtonStates()
     {
         for (int i = 0; i < feedButtons.Length; i++)
         {

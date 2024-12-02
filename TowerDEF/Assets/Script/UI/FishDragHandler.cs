@@ -8,11 +8,14 @@ public class FishDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, I
     [SerializeField] private GameManager.ResourceFishType fishType; // この魚の種類
     [SerializeField] private Canvas canvas; // UI用のCanvas
     [SerializeField] private GameObject fishPrefab; // 場に設置する魚のPrefab
+    [SerializeField] private float yOffset = 2f; // 魚を少し上に配置するためのオフセット（デフォルト値2）
 
     private GameObject dragPreview; // ドラッグ中のプレビュー用オブジェクト
     private RectTransform dragPreviewRectTransform;
 
     private bool canDrag = true; // ドラッグ可能かどうかを判定するフラグ
+
+    private bool isDragging = false; // ドラッグ中かどうかを管理するフラグ
 
     public void Start()
     {
@@ -30,6 +33,7 @@ public class FishDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, I
         }
 
         canDrag = true; // ドラッグを有効化
+        isDragging = true; // ドラッグ中フラグを設定
 
         // ドラッグ中に表示するプレビューオブジェクトを作成
         dragPreview = new GameObject("DragPreview");
@@ -55,7 +59,6 @@ public class FishDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, I
         dragPreview.AddComponent<CanvasGroup>().blocksRaycasts = false; // Raycastを無効化
     }
 
-
     public void OnDrag(PointerEventData eventData)
     {
         // ドラッグが無効な場合は何もしない
@@ -75,7 +78,7 @@ public class FishDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, I
     public void OnEndDrag(PointerEventData eventData)
     {
         // ドラッグが無効な場合は何もしない
-        if (!canDrag || dragPreview == null)
+        if (!canDrag || dragPreview == null || !isDragging)
             return;
 
         if (dragPreview != null)
@@ -84,31 +87,47 @@ public class FishDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, I
             dragPreview = null;   // 参照をクリア
         }
 
-        // ドロップ位置を取得
+        isDragging = false; // ドラッグ終了フラグをリセット
+
+        // マウス位置を取得
         Vector3 mousePosition = Input.mousePosition;
 
-        // ワールド座標に変換
-        Vector3 worldPosition = Camera.main.ScreenToWorldPoint(new Vector3(mousePosition.x, mousePosition.y, Camera.main.nearClipPlane + 10f)); // 適切なZ位置を設定
+        // ワールド座標に変換（Z軸をカメラからの距離で調整）
+        Vector3 worldPosition = Camera.main.ScreenToWorldPoint(new Vector3(mousePosition.x, mousePosition.y, Camera.main.nearClipPlane + 10f));
 
-        // 在庫がある場合に魚を生成
-        if (gameManager.finventory[fishType] > 0)
-        {
-            SpawnFishAt(worldPosition);
-            gameManager.finventory[fishType]--; // 在庫を減らす
-            gameManager.UpdateResourceUI();
-        }
-        else
-        {
-            Debug.Log("在庫不足で設置できません");
-        }
+        // 3Dレイキャストを使用して、マップ上にドロップできる場所を確認
+        RaycastHit hit;
+        Ray ray = Camera.main.ScreenPointToRay(mousePosition);
 
+        if (Physics.Raycast(ray, out hit))
+        {
+            // レイキャストがヒットした場所がマップ上かどうかを確認
+            if (hit.collider != null && hit.collider.CompareTag("Map"))
+            {
+                // マップ上にいる場合のみ生成
+                if (gameManager.finventory[fishType] > 0)
+                {
+                    // 魚を設置する場所にZ軸を合わせ、少し上にオフセットを加える
+                    Vector3 spawnPosition = new Vector3(hit.point.x, hit.point.y + yOffset, hit.point.z);
+
+                    SpawnFishAt(spawnPosition);  // 魚を設置
+                    gameManager.finventory[fishType]--; // 在庫を減らす
+                    gameManager.UpdateResourceUI();
+                }
+                else
+                {
+                    Debug.Log("在庫不足で設置できません");
+                }
+            }
+            else
+            {
+                Debug.Log("マップの上でない場所に設置しようとしています");
+            }
+        }
     }
 
     private void SpawnFishAt(Vector3 position)
     {
-        // Z位置を調整（平面上に設置する場合）
-        position.z = 0;
-
         // 魚を場に生成
         Instantiate(fishPrefab, position, Quaternion.identity);
         Debug.Log($"{fishType} を設置しました！");
