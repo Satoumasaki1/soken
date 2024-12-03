@@ -12,6 +12,7 @@ TagManager:
   - esaba
   - Kobanzame
   - esa
+  - Map
   layers:
   - Default
   - TransparentFX
