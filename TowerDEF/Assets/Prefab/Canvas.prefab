@@ -380,8 +380,8 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1937753883}
   m_HandleRect: {fileID: 1937753882}
   m_Direction: 2
-  m_Value: -0.0000038898843
-  m_Size: 0.5729641
+  m_Value: -0.0000003070962
+  m_Size: 0.57296413
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -1952,7 +1952,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 149.06258}
+  m_AnchoredPosition: {x: 0, y: 149.06203}
   m_SizeDelta: {x: 0, y: 516.84}
   m_Pivot: {x: 0, y: 1}
 --- !u!1 &1348846793
@@ -5423,7 +5423,7 @@ GameObject:
   - component: {fileID: 7343719211741391969}
   - component: {fileID: 7181878442316728596}
   m_Layer: 5
-  m_Name: EbiText
+  m_Name: FishCountText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5810,6 +5810,10 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 1289528431}
     m_Modifications:
+    - target: {fileID: 2319797326342763292, guid: b9f6581cef25fd74296167f90950bbb1, type: 3}
+      propertyPath: m_Name
+      value: FishCountText
+      objectReference: {fileID: 0}
     - target: {fileID: 2319797326348928704, guid: b9f6581cef25fd74296167f90950bbb1, type: 3}
       propertyPath: canvas
       value: 
@@ -5916,6 +5920,10 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 1289528431}
     m_Modifications:
+    - target: {fileID: 4541815545491249582, guid: c982452f7b9ce834484d906156a50cdf, type: 3}
+      propertyPath: m_Name
+      value: FishCountText
+      objectReference: {fileID: 0}
     - target: {fileID: 4541815545836415515, guid: c982452f7b9ce834484d906156a50cdf, type: 3}
       propertyPath: canvas
       value: 
@@ -6022,6 +6030,10 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 1289528431}
     m_Modifications:
+    - target: {fileID: 4721842936629015923, guid: f806d8d011f8ef7409b19c0d092c3e81, type: 3}
+      propertyPath: m_Name
+      value: FishCountText
+      objectReference: {fileID: 0}
     - target: {fileID: 4721842937509864508, guid: f806d8d011f8ef7409b19c0d092c3e81, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -6322,6 +6334,10 @@ PrefabInstance:
       propertyPath: canvas
       value: 
       objectReference: {fileID: 4798916548452943263}
+    - target: {fileID: 8543027465888412674, guid: 99140efa41bb5e142aceba8d9d25e20b, type: 3}
+      propertyPath: m_Name
+      value: FishCountText
+      objectReference: {fileID: 0}
     - target: {fileID: 9128442611572462582, guid: 99140efa41bb5e142aceba8d9d25e20b, type: 3}
       propertyPath: m_Name
       value: Kani
@@ -6340,6 +6356,10 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 1289528431}
     m_Modifications:
+    - target: {fileID: 6463952448154689330, guid: 5b17dbf90f0c3c6478b108fdb4d3e313, type: 3}
+      propertyPath: m_Name
+      value: FishCountText
+      objectReference: {fileID: 0}
     - target: {fileID: 6463952448961423049, guid: 5b17dbf90f0c3c6478b108fdb4d3e313, type: 3}
       propertyPath: m_Name
       value: Syako
@@ -6537,6 +6557,10 @@ PrefabInstance:
     - target: {fileID: 6851105555798284559, guid: 440893113989e4241b832173dd844d84, type: 3}
       propertyPath: m_Name
       value: Manta
+      objectReference: {fileID: 0}
+    - target: {fileID: 6851105556173546165, guid: 440893113989e4241b832173dd844d84, type: 3}
+      propertyPath: m_Name
+      value: FishCountText
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 440893113989e4241b832173dd844d84, type: 3}
