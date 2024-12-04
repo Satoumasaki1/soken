@@ -328,7 +328,7 @@ GameObject:
   - component: {fileID: 3503799410937921125}
   m_Layer: 0
   m_Name: KOBANUZAME
-  m_TagString: Untagged
+  m_TagString: Ally
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -342,7 +342,7 @@ Transform:
   m_GameObject: {fileID: 8936589947165573171}
   m_LocalRotation: {x: -0, y: -0, z: 0.9997186, w: -0.023723722}
   m_LocalPosition: {x: 48.29446, y: 7.02, z: -121.44}
-  m_LocalScale: {x: 2.1501653, y: 2.1501653, z: 2.1501653}
+  m_LocalScale: {x: 0.838844, y: 0.838844, z: 0.838844}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 8799300650849739846}
@@ -358,7 +358,7 @@ CapsuleCollider:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8936589947165573171}
   m_Material: {fileID: 0}
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_Enabled: 1
   m_Radius: 0.5
   m_Height: 1
