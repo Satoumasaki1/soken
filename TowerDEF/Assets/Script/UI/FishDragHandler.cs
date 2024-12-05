@@ -17,6 +17,7 @@ public class FishDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, I
 
     private bool isDragging = false; // ドラッグ中かどうかを管理するフラグ
 
+
     public void Start()
     {
         gameManager = GameObject.Find("GameManager").GetComponent<GameManager>();
@@ -113,6 +114,12 @@ public class FishDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, I
                     SpawnFishAt(spawnPosition);  // 魚を設置
                     gameManager.finventory[fishType]--; // 在庫を減らす
                     gameManager.UpdateResourceUI();
+                    // 在庫減少後、UIを更新するためにFishInventoryUIに通知
+                    FishInventoryUIManager fishInventoryUI = GameObject.Find("FishInventoryUIManager").GetComponent<FishInventoryUIManager>();
+                    if (fishInventoryUI != null)
+                    {
+                        fishInventoryUI.OnFishStockDecreased(fishType, 1); // 在庫が減った時の
+                    }
                 }
                 else
                 {

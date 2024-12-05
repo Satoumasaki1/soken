@@ -11,6 +11,7 @@ public class FishClickHandler : MonoBehaviour
 
     private void AddFishToInventory(GameManager.ResourceFishType fishType)
     {
+        // 在庫を増やす処理
         switch (fishType)
         {
             case GameManager.ResourceFishType.Kani:
@@ -42,10 +43,18 @@ public class FishClickHandler : MonoBehaviour
                 break;
         }
 
+        // 在庫増加後、UIを更新するためにFishInventoryUIに通知
+        FishInventoryUIManager fishInventoryUI = GameObject.Find("FishInventoryUIManager").GetComponent<FishInventoryUIManager>();
+        if (fishInventoryUI != null)
+        {
+            fishInventoryUI.OnFishStockIncreased(fishType, 1); // 増加した量を渡す（1）; // 在庫が増えたことをUIに伝える
+        }
+
         // インベントリーを更新した後、UIをリフレッシュ
         GameManager.Instance.UpdateResourceUI();
 
         // 魚をクリック後に削除する場合
         Destroy(gameObject);
     }
+
 }

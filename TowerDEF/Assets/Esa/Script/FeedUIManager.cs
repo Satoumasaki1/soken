@@ -40,7 +40,7 @@ public class FeedUIManager : MonoBehaviour
         feedButtons[5].onClick.AddListener(() => SetFeedType(GameManager.ResourceType.FeedC));
 
         // 最初に在庫の更新を行う
-        UpdateButtonStates();
+        //UpdateButtonStates();
         //最初に持っている餌の情報をGameManagerに通知する
         SetFeedType(GameManager.ResourceType.OkiaMi);
     }

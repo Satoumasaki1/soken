@@ -102,8 +102,8 @@ public class GameManager : MonoBehaviour
         inventory[ResourceType.Plankton] = 3;
 
         //動作確認のためにカニの在庫を3に設定
-        finventory[ResourceFishType.Kani] = 3;
-        finventory[ResourceFishType.Tyoutyou] = 2;
+        //finventory[ResourceFishType.Kani] = 3;
+        //finventory[ResourceFishType.Tyoutyou] = 2;
 
         UpdateResourceUI(); // リソースの初期UIを更新
     }
