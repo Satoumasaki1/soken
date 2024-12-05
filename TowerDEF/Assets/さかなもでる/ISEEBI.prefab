@@ -208,7 +208,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c94da4e51e0b63e48a286384ad25bb51, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  targetTag: koukaku
+  targetTag: Ally
   fallbackTag: Base
   health: 15
   attackDamage: 5

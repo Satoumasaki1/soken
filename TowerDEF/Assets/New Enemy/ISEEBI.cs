@@ -3,7 +3,7 @@ using UnityEngine.AI;
 
 public class ISEEBI : MonoBehaviour, IDamageable, IStunnable, ISeasonEffect
 {
-    public string targetTag = "koukaku"; // 攻撃対象のタグを設定
+    public string targetTag = "Ally"; // 攻撃対象のタグを設定
     public string fallbackTag = "Base"; // ターゲットが見つからなかった場合の代替タグ
 
     private Transform target; // ターゲットのTransform
@@ -69,14 +69,24 @@ public class ISEEBI : MonoBehaviour, IDamageable, IStunnable, ISeasonEffect
 
         if (target != null)
         {
-            // ターゲットに向かって移動する
-            agent.SetDestination(target.position);
+            float distanceToTarget = Vector3.Distance(transform.position, target.position);
 
-            // 攻撃範囲内にターゲットがいる場合、攻撃する
-            if (Vector3.Distance(transform.position, target.position) <= attackRange && Time.time > lastAttackTime + attackCooldown)
+            if (distanceToTarget <= attackRange)
             {
-                AttackTarget();
-                lastAttackTime = Time.time;
+                // 攻撃範囲内にターゲットがいる場合、移動を停止して攻撃する
+                agent.isStopped = true;
+
+                if (Time.time > lastAttackTime + attackCooldown)
+                {
+                    AttackTarget();
+                    lastAttackTime = Time.time;
+                }
+            }
+            else
+            {
+                // 攻撃範囲外の場合はターゲットに向かって移動する
+                agent.isStopped = false;
+                agent.SetDestination(target.position);
             }
         }
     }

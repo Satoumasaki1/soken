@@ -70,16 +70,26 @@ public class Ikasan : MonoBehaviour, IDamageable, IStunnable, ISeasonEffect
 
         if (target != null)
         {
-            // ターゲットに向かって移動する
-            agent.SetDestination(target.position);
-            Debug.Log($"ターゲットに向かって移動中: {target.name}");
+            float distanceToTarget = Vector3.Distance(transform.position, target.position);
 
-            // 攻撃範囲内にターゲットがいる場合、攻撃する
-            if (Vector3.Distance(transform.position, target.position) <= attackRange && Time.time > lastAttackTime + attackCooldown)
+            if (distanceToTarget <= attackRange)
             {
+                // 攻撃範囲内にターゲットがいる場合、移動を停止して攻撃する
+                agent.isStopped = true;
                 Debug.Log("AttackTargetメソッドを呼び出します...");
-                AttackTarget();
-                lastAttackTime = Time.time;
+
+                if (Time.time > lastAttackTime + attackCooldown)
+                {
+                    AttackTarget();
+                    lastAttackTime = Time.time;
+                }
+            }
+            else
+            {
+                // 攻撃範囲外の場合はターゲットに向かって移動する
+                agent.isStopped = false;
+                agent.SetDestination(target.position);
+                Debug.Log($"ターゲットに向かって移動中: {target.name}");
             }
         }
         else
