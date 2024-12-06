@@ -155,6 +155,10 @@ public class KAZIKI : MonoBehaviour, IDamageable, IStunnable, ISeasonEffect
 
         // “ËiŒã‚Ì”½“®‚ÅHP‚ğ10%¸‚¤
         TakeDamage((int)(health * 0.1f));
+        if (health <= 0)
+        {
+            Die();
+        }
     }
 
     public void TakeDamage(int damageAmount)
