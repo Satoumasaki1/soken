@@ -21,6 +21,11 @@ public class FishDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, I
     public void Start()
     {
         gameManager = GameObject.Find("GameManager").GetComponent<GameManager>();
+        if (canvas == null)
+        {
+            canvas = FindObjectOfType<Canvas>();
+            Debug.Log(canvas != null ? "Canvasを自動取得しました。" : "Canvasが見つかりませんでした。");
+        }
     }
 
     public void OnBeginDrag(PointerEventData eventData)
@@ -32,16 +37,19 @@ public class FishDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, I
             canDrag = false; // ドラッグを無効化
             return;
         }
-
         canDrag = true; // ドラッグを有効化
         isDragging = true; // ドラッグ中フラグを設定
 
         // ドラッグ中に表示するプレビューオブジェクトを作成
         dragPreview = new GameObject("DragPreview");
         dragPreview.transform.SetParent(canvas.transform, false);
+        Debug.Log($"Parent: {dragPreview.transform.parent.name}");
+
 
         // プレビューにImageコンポーネントを追加
         var image = dragPreview.AddComponent<UnityEngine.UI.Image>();
+        // コンポーネント追加後にログを出力
+        Debug.Log("Imageコンポーネントを追加しました。");
         var originalImage = GetComponent<UnityEngine.UI.Image>();
 
         // スプライトをコピー
