@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UI;
 using System.Collections;
 
 public class Kanisan : MonoBehaviour, IDamageable, ISeasonEffect
@@ -24,6 +25,11 @@ public class Kanisan : MonoBehaviour, IDamageable, ISeasonEffect
     [SerializeField]
     private GameManager gm;
 
+    // 体力バー関連
+    public GameObject healthBarPrefab; // 体力バーのプレハブ
+    private GameObject healthBarInstance; // 実際に生成された体力バー
+    private Slider healthSlider; // 体力バーのスライダーコンポーネント
+
     private bool seasonEffectApplied = false;
 
     void Start()
@@ -39,6 +45,14 @@ public class Kanisan : MonoBehaviour, IDamageable, ISeasonEffect
         {
             Debug.LogError("GameManagerの参照が見つかりません。GameManagerが正しく設定されているか確認してください。");
         }
+
+        // 体力バーを生成
+        healthBarInstance = Instantiate(healthBarPrefab);
+        healthBarInstance.transform.SetParent(GameObject.Find("Canvas").transform, false);
+        healthSlider = healthBarInstance.GetComponentInChildren<Slider>();
+
+        // 初期状態で非表示
+        healthBarInstance.SetActive(false);
     }
 
     void Update()
@@ -57,6 +71,49 @@ public class Kanisan : MonoBehaviour, IDamageable, ISeasonEffect
 
         // イルカからのバフを適用
         ApplyIrukaBuff();
+
+        // 体力バーの更新
+        UpdateHealthBar();
+    }
+
+    private void UpdateHealthBar()
+    {
+        if (healthSlider == null) return;
+
+        // Kanisanの体力に応じて体力バーを更新
+        float healthPercentage = (float)health / maxHealth;
+        healthSlider.value = healthPercentage;
+
+        // 体力がマックスの場合は非表示、減っている場合は表示
+        if (health == maxHealth)
+        {
+            healthBarInstance.SetActive(false);
+        }
+        else
+        {
+            healthBarInstance.SetActive(true);
+
+            // バーの色を更新
+            Image fill = healthSlider.fillRect.GetComponent<Image>();
+            if (fill != null)
+            {
+                fill.color = Color.Lerp(Color.red, Color.green, healthPercentage);
+            }
+
+            // 体力バーの位置をKanisanの頭上に設定
+            Vector3 worldPosition = new Vector3(transform.position.x, transform.position.y + 2, transform.position.z);
+            Vector3 screenPosition = Camera.main.WorldToScreenPoint(worldPosition);
+            healthBarInstance.transform.position = screenPosition;
+        }
+    }
+
+    private void OnDestroy()
+    {
+        // オブジェクトが破壊された場合、体力バーを破壊
+        if (healthBarInstance != null)
+        {
+            Destroy(healthBarInstance);
+        }
     }
 
     private void OnMouseDown()
