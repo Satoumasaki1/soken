@@ -723,6 +723,7 @@ GameObject:
   - component: {fileID: 8206058957486047666}
   - component: {fileID: 2554600146444141411}
   - component: {fileID: 3606480094920668451}
+  - component: {fileID: 1795117161442309405}
   m_Layer: 0
   m_Name: EIIIIIII
   m_TagString: Enemy
@@ -739,8 +740,8 @@ Transform:
   m_GameObject: {fileID: 9120261245035259397}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 46.681313, y: 7.4, z: -132.13}
-  m_LocalScale: {x: 5.1896, y: 5.1896, z: 5.1896}
-  m_ConstrainProportionsScale: 0
+  m_LocalScale: {x: 8, y: 8, z: 8}
+  m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 6627376035081092785}
   - {fileID: 5823381496910841930}
@@ -776,7 +777,7 @@ MonoBehaviour:
   primaryTargetTag: koukaku
   secondaryTargetTag: Ally
   fallbackTag: Base
-  health: 35
+  health: 20
   attackDamage: 8
   attackRange: 6
   attackCooldown: 2
@@ -795,7 +796,7 @@ NavMeshAgent:
   m_Enabled: 1
   m_AgentTypeID: 0
   m_Radius: 0.5
-  m_Speed: 3.5
+  m_Speed: 15
   m_Acceleration: 8
   avoidancePriority: 50
   m_AngularSpeed: 120
@@ -804,6 +805,27 @@ NavMeshAgent:
   m_AutoBraking: 1
   m_AutoRepath: 1
   m_Height: 2
-  m_BaseOffset: 0
+  m_BaseOffset: 0.34
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
+--- !u!95 &1795117161442309405
+Animator:
+  serializedVersion: 5
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9120261245035259397}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 5fa9a9f0aca8bbf4384b39ffa747ca6f, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0

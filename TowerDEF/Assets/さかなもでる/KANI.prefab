@@ -801,16 +801,16 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2860729491366959855}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: 0, y: 1, z: 0, w: 0}
   m_LocalPosition: {x: -9.460302, y: 2.25, z: -108.48461}
-  m_LocalScale: {x: 3.9347873, y: 3.9347873, z: 3.9347873}
-  m_ConstrainProportionsScale: 0
+  m_LocalScale: {x: 10, y: 10, z: 10}
+  m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 6539551227187006892}
   - {fileID: 3729616715747774694}
   m_Father: {fileID: 0}
   m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
 --- !u!136 &2860729491366959853
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -821,7 +821,7 @@ CapsuleCollider:
   m_Material: {fileID: 0}
   m_IsTrigger: 0
   m_Enabled: 1
-  m_Radius: 0.5
+  m_Radius: 1
   m_Height: 1
   m_Direction: 1
   m_Center: {x: 0, y: 0, z: 0}
@@ -837,12 +837,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a91f7c711eae92f489091aa183152272, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  health: 10
-  maxHealth: 10
+  health: 20
+  maxHealth: 20
   isBuffActive: 0
-  attackDamage: 3
+  attackDamage: 20
   buffMultiplier: 1.5
   detectionRadius: 10
+  attackRange: 15
   attackCooldown: 1.5
   gm: {fileID: 0}
 --- !u!1 &3186705177753826347

@@ -790,7 +790,7 @@ GameObject:
   - component: {fileID: 1212056148631335479}
   m_Layer: 0
   m_Name: KANI CL
-  m_TagString: Ally
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -802,16 +802,16 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2860729491366959855}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: 0, y: 1, z: 0, w: 0}
   m_LocalPosition: {x: -9.460302, y: 2.25, z: -108.48461}
-  m_LocalScale: {x: 3.9347873, y: 3.9347873, z: 3.9347873}
-  m_ConstrainProportionsScale: 0
+  m_LocalScale: {x: 10, y: 10, z: 10}
+  m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 6539551227187006892}
   - {fileID: 3729616715747774694}
   m_Father: {fileID: 0}
   m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
 --- !u!136 &2860729491366959853
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -844,6 +844,7 @@ MonoBehaviour:
   attackDamage: 3
   buffMultiplier: 1.5
   detectionRadius: 10
+  attackRange: 15
   attackCooldown: 1.5
   gm: {fileID: 0}
 --- !u!114 &1212056148631335479

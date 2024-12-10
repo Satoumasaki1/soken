@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 509545042064609615}
   m_Layer: 0
   m_Name: Okiami 1
-  m_TagString: Untagged
+  m_TagString: esa
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

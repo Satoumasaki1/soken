@@ -12,6 +12,7 @@ public class GameManager : MonoBehaviour
     public int baseHealth = 100; // 拠点の初期体力
     public GameObject gameOverPanel; // ゲームオーバーパネル
     public GameObject nextwavebutton; // 次のウェーブの開始ボタン
+    public GameObject CanvasPanel;
 
     public int totalWaves = 50; // 総ウェーブ数
     public float waveDuration = 10f; // ウェーブの持続時間
@@ -83,6 +84,7 @@ public class GameManager : MonoBehaviour
         nextwavebutton.SetActive(false); // 次のウェーブボタンを非表示
         ForceResumeGame();  // 初回ウェーブ開始時の一時停止解除を強制
         StartWave();  // 最初のウェーブ開始
+        CanvasPanel.SetActive(true);
 
         // 餃の初期在庫を0に設定
         foreach (ResourceType resource in System.Enum.GetValues(typeof(ResourceType)))
