@@ -12,7 +12,7 @@ public class EsaSpawner : MonoBehaviour
 
     public Transform planeArea; // 餌を置くプレーンの領域
     public int maxEsaCount = 4; // 餌の最大設置数
-    private int currentEsaCount = 0; // 現在設置されている餌の数
+    public int currentEsaCount = 0; // 現在設置されている餌の数
 
     private bool isEsaPlacingMode = false; // 餌を置くモードのトグル
 
