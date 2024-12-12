@@ -347,14 +347,14 @@ public class GameManager : MonoBehaviour
     // リソースUIを更新するメソッド
     public void UpdateResourceUI()
     {
-        okiaMiText.text = "OkiaMi: " + inventory[ResourceType.OkiaMi];
-        benthosText.text = "Benthos: " + inventory[ResourceType.Benthos];
-        planktonText.text = "Plankton: " + inventory[ResourceType.Plankton];
-        feedAText.text = "Feed A: " + inventory[ResourceType.FeedA];
-        feedBText.text = "Feed B: " + inventory[ResourceType.FeedB];
-        feedCText.text = "Feed C: " + inventory[ResourceType.FeedC];
-        urokoText.text = "Uroko: " + inventory[ResourceType.Uroko];
-        pearlText.text = "Pearl: " + inventory[ResourceType.Pearl];
+        okiaMiText.text = ": " + inventory[ResourceType.OkiaMi].ToString();
+        benthosText.text = " :" + inventory[ResourceType.Benthos].ToString();
+        planktonText.text = ": " + inventory[ResourceType.Plankton].ToString();
+        feedAText.text = ": " + inventory[ResourceType.FeedA].ToString();
+        feedBText.text = ": " + inventory[ResourceType.FeedB].ToString();
+        feedCText.text = ": " + inventory[ResourceType.FeedC].ToString();
+        urokoText.text = ": " + inventory[ResourceType.Uroko].ToString();
+        pearlText.text = ": " + inventory[ResourceType.Pearl].ToString();
         Kani.text = "x" + finventory[ResourceFishType.Kani].ToString();
         Tyoutyou.text = "x" + finventory[ResourceFishType.Tyoutyou].ToString();
         Kaisou.text = "x" + finventory[ResourceFishType.Kaisou].ToString();

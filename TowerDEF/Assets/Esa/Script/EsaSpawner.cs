@@ -80,10 +80,12 @@ public class EsaSpawner : MonoBehaviour
         float x = center.x + Random.Range(-width / 2f, width / 2f);
         float z = center.z + Random.Range(-length / 2f, length / 2f);
 
-        float y = center.y; // プレーンの高さを固定
+        // プレーンの表面より少し上に配置
+        float y = center.y + 0.5f; // オフセット量を調整（0.1fは例）
 
         return new Vector3(x, y, z);
     }
+
 
     // 選択された餌を生成する関数
     void SpawnSelectedEsa(Vector3 position, GameManager.ResourceType selectedFeedType)
