@@ -4,7 +4,7 @@ using System.Collections;
 
 public class Kanisan : MonoBehaviour, IDamageable, ISeasonEffect
 {
-    // Kanisanの体力
+    // Kanisanの基本プロパティ
     public int health = 10;
     public int maxHealth = 10;
     private bool maxHealthBuffApplied = false;
@@ -13,7 +13,7 @@ public class Kanisan : MonoBehaviour, IDamageable, ISeasonEffect
     public int attackDamage = 3;
     public float buffMultiplier = 1.5f; // 攻撃バフの倍率
 
-    // Kanisanの攻撃力と攻撃関連の設定
+    // 攻撃関連の設定
     public float detectionRadius = 10f;     // 敵を検知する範囲
     public float attackRange = 5f;          // 攻撃範囲
     public float attackCooldown = 1.5f;     // 攻撃のクールダウン時間
@@ -21,95 +21,92 @@ public class Kanisan : MonoBehaviour, IDamageable, ISeasonEffect
     private Transform target;               // 攻撃対象の敵
     private float lastAttackTime;           // 最後に攻撃した時間
 
-    // GameManagerの参照をインスペクターから設定できるようにする
+    // GameManagerの参照
     [SerializeField]
     private GameManager gm;
 
     // 体力バー関連
-    public GameObject healthBarPrefab; // 体力バーのプレハブ
-    private GameObject healthBarInstance; // 実際に生成された体力バー
-    private Slider healthSlider; // 体力バーのスライダーコンポーネント
+    public GameObject healthBarPrefab;      // 体力バーのプレハブ
+    private GameObject healthBarInstance;   // 実際に生成された体力バー
+    private Slider healthSlider;            // 体力バーのスライダーコンポーネント
 
     private bool seasonEffectApplied = false;
 
     void Start()
     {
-        // GameManagerの参照がインスペクターで設定されていない場合、自動的に取得
+        // GameManagerの参照を取得
         if (gm == null)
         {
             gm = GameManager.Instance != null ? GameManager.Instance : GameObject.Find("GameManager").GetComponent<GameManager>();
         }
 
-        // GameManagerの参照が取得できなかった場合、エラーメッセージを表示
         if (gm == null)
         {
             Debug.LogError("GameManagerの参照が見つかりません。GameManagerが正しく設定されているか確認してください。");
         }
 
-        // 体力バーを生成
-        healthBarInstance = Instantiate(healthBarPrefab);
-        healthBarInstance.transform.SetParent(GameObject.Find("Canvas").transform, false);
-        healthSlider = healthBarInstance.GetComponentInChildren<Slider>();
+        // 現在の体力を初期化
+        health = maxHealth;
 
-        // 初期状態で非表示
-        healthBarInstance.SetActive(false);
+        // 体力バーを生成し、キャラクターの子オブジェクトとして配置
+        if (healthBarPrefab != null)
+        {
+            healthBarInstance = Instantiate(healthBarPrefab, transform);
+            healthBarInstance.transform.localPosition = new Vector3(0, 2, 0); // 頭上に配置
+            healthSlider = healthBarInstance.GetComponentInChildren<Slider>();
+
+            if (healthSlider != null)
+            {
+                healthSlider.maxValue = 1;
+                healthSlider.value = health;
+            }
+        }
+        else
+        {
+            Debug.LogError("HealthBarPrefabが設定されていません！");
+        }
     }
 
     void Update()
     {
-        // 一時停止中はAttackOn()を実行せずに戻る
+        // 一時停止中は処理をスキップ
         if (gm != null && gm.isPaused)
-        {
             return;
-        }
 
-        // 一時停止されていない場合、攻撃処理を実行
+        // 攻撃処理
         AttackOn();
 
-        // 近くのカニさんの数に応じて攻撃力と体力を強化
+        // 周囲のカニさんによるバフ
         BuffKanisan();
 
-        // イルカからのバフを適用
+        // イルカからのバフ適用
         ApplyIrukaBuff();
 
-        // 体力バーの更新
+        // 体力バーを更新
         UpdateHealthBar();
     }
 
     private void UpdateHealthBar()
     {
-        if (healthSlider == null) return;
+        if (healthSlider == null || healthBarInstance == null) return;
 
-        // Kanisanの体力に応じて体力バーを更新
         float healthPercentage = (float)health / maxHealth;
         healthSlider.value = healthPercentage;
 
-        // 体力がマックスの場合は非表示、減っている場合は表示
-        if (health == maxHealth)
-        {
-            healthBarInstance.SetActive(false);
-        }
-        else
-        {
-            healthBarInstance.SetActive(true);
+        // 体力がマックスの場合は非表示
+        healthBarInstance.SetActive(health < maxHealth);
 
-            // バーの色を更新
-            Image fill = healthSlider.fillRect.GetComponent<Image>();
-            if (fill != null)
-            {
-                fill.color = Color.Lerp(Color.red, Color.green, healthPercentage);
-            }
-
-            // 体力バーの位置をKanisanの頭上に設定
-            Vector3 worldPosition = new Vector3(transform.position.x, transform.position.y + 2, transform.position.z);
-            Vector3 screenPosition = Camera.main.WorldToScreenPoint(worldPosition);
-            healthBarInstance.transform.position = screenPosition;
+        // バーの色を更新
+        Image fill = healthSlider.fillRect.GetComponent<Image>();
+        if (fill != null)
+        {
+            fill.color = Color.Lerp(Color.red, Color.green, healthPercentage);
         }
     }
 
     private void OnDestroy()
     {
-        // オブジェクトが破壊された場合、体力バーを破壊
+        // キャラクターが削除された場合、体力バーも削除
         if (healthBarInstance != null)
         {
             Destroy(healthBarInstance);
@@ -118,7 +115,7 @@ public class Kanisan : MonoBehaviour, IDamageable, ISeasonEffect
 
     private void OnMouseDown()
     {
-        // 魚がクリックされたとき、回復を試みる
+        // 餌で回復する処理
         TryHeal();
     }
 
@@ -136,7 +133,7 @@ public class Kanisan : MonoBehaviour, IDamageable, ISeasonEffect
                 {
                     if (health < maxHealth)
                     {
-                        health += 2;
+                        health += 2; // 回復量
                         health = Mathf.Min(health, maxHealth);
                         gm.inventory[selectedFeed]--;
                         gm.UpdateResourceUI();
@@ -154,12 +151,12 @@ public class Kanisan : MonoBehaviour, IDamageable, ISeasonEffect
             }
             else
             {
-                Debug.Log("この餃では回復できません。");
+                Debug.Log("この餌では回復できません。");
             }
         }
         else
         {
-            Debug.Log("餃が選択されていません。");
+            Debug.Log("餌が選択されていません。");
         }
     }
 
@@ -180,40 +177,33 @@ public class Kanisan : MonoBehaviour, IDamageable, ISeasonEffect
             }
             else if (distanceToTarget > detectionRadius)
             {
-                target = null; // ターゲットが範囲外に出た場合リセット
+                target = null;
             }
         }
     }
 
-    void OnTriggerEnter(Collider other)
-    {
-        if (other.CompareTag("Enemy") && target == null)
-        {
-            target = other.transform;
-        }
-    }
-
-    void DetectEnemy()
+    private void DetectEnemy()
     {
         Collider[] colliders = Physics.OverlapSphere(transform.position, detectionRadius);
-        Debug.Log("敵を検知しています...");
         foreach (Collider collider in colliders)
         {
             if (collider.CompareTag("Enemy"))
             {
                 target = collider.transform;
-                Debug.Log($"敵を検知しました: {target.name}");
                 break;
             }
         }
     }
 
-    void AttackTarget()
+    private void AttackTarget()
     {
-        IDamageable damageable = target.GetComponent<IDamageable>();
-        if (damageable != null)
+        if (target != null)
         {
-            damageable.TakeDamage(attackDamage);
+            IDamageable damageable = target.GetComponent<IDamageable>();
+            if (damageable != null)
+            {
+                damageable.TakeDamage(attackDamage);
+            }
         }
     }
 
@@ -237,24 +227,18 @@ public class Kanisan : MonoBehaviour, IDamageable, ISeasonEffect
 
         Collider[] colliders = Physics.OverlapSphere(transform.position, detectionRadius);
         int nearbyKanisanCount = 0;
-        Debug.Log("味方のカニさんを検知しています...");
         foreach (Collider collider in colliders)
         {
             Kanisan kanisan = collider.GetComponent<Kanisan>();
-            if (kanisan != null && kanisan.gameObject != gameObject)
+            if (kanisan != null && kanisan != this)
             {
                 nearbyKanisanCount++;
-                Debug.Log($"味方のカニさんを検知しました: {kanisan.name}");
-                if (nearbyKanisanCount >= 5)
-                {
-                    nearbyKanisanCount = 5;
-                    break;
-                }
+                if (nearbyKanisanCount >= 5) break;
             }
         }
 
-        attackDamage = 3 + nearbyKanisanCount * 5;
-        maxHealth = 10 + nearbyKanisanCount * 5;
+        attackDamage += nearbyKanisanCount * 5;
+        maxHealth += nearbyKanisanCount * 5;
         health = Mathf.Min(health + nearbyKanisanCount * 5, maxHealth);
 
         maxHealthBuffApplied = true;
@@ -273,7 +257,6 @@ public class Kanisan : MonoBehaviour, IDamageable, ISeasonEffect
                 {
                     isBuffActive = true;
                     attackDamage = Mathf.RoundToInt(originalAttackDamage * buffMultiplier);
-                    Debug.Log($"{name} の攻撃力が強化されました: {attackDamage}");
                 }
                 break;
             }
@@ -283,17 +266,7 @@ public class Kanisan : MonoBehaviour, IDamageable, ISeasonEffect
         {
             isBuffActive = false;
             attackDamage = originalAttackDamage;
-            Debug.Log($"{name} の攻撃力強化が終了しました。元の攻撃力に戻りました: {attackDamage}");
         }
-    }
-
-    void OnDrawGizmosSelected()
-    {
-        Gizmos.color = Color.blue;
-        Gizmos.DrawWireSphere(transform.position, detectionRadius);
-
-        Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(transform.position, attackRange);
     }
 
     public void ApplySeasonEffect(GameManager.Season currentSeason)
@@ -306,24 +279,20 @@ public class Kanisan : MonoBehaviour, IDamageable, ISeasonEffect
                 maxHealth += 10;
                 health = Mathf.Min(health + 10, maxHealth);
                 attackDamage = Mathf.RoundToInt(attackDamage * 1.1f);
-                Debug.Log("春のバフが適用されました: 体力と攻撃力が少し上昇");
                 break;
             case GameManager.Season.Summer:
                 maxHealth -= 5;
                 health = Mathf.Min(health, maxHealth);
-                Debug.Log("夏のデバフが適用されました: 体力が減少");
                 break;
             case GameManager.Season.Autumn:
                 maxHealth += 15;
                 health = Mathf.Min(health + 15, maxHealth);
                 attackDamage = Mathf.RoundToInt(attackDamage * 1.2f);
-                Debug.Log("秋のバフが適用されました: 体力と攻撃力が上昇");
                 break;
             case GameManager.Season.Winter:
                 maxHealth -= 10;
                 health = Mathf.Min(health, maxHealth);
                 attackDamage = Mathf.RoundToInt(attackDamage * 0.9f);
-                Debug.Log("冬のデバフが適用されました: 体力と攻撃力が減少");
                 break;
         }
 
@@ -336,6 +305,5 @@ public class Kanisan : MonoBehaviour, IDamageable, ISeasonEffect
         health = Mathf.Min(health, maxHealth);
         attackDamage = originalAttackDamage;
         seasonEffectApplied = false;
-        Debug.Log("シーズン効果がリセットされました。");
     }
 }
