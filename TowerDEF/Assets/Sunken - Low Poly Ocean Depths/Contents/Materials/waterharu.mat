@@ -80,7 +80,7 @@ Material:
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _Color1: {r: 0.6901961, g: 0.93333334, b: 1.372549, a: 1}
-    - _Color2: {r: 0.50980395, g: 0.7607843, b: 1.2313726, a: 1}
+    - _Color2: {r: 0.28759387, g: 0.6442793, b: 1.3027759, a: 1}
     - _Color3: {r: 0.2901961, g: 0.5176471, b: 1.027451, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
   m_BuildTextureStacks: []
