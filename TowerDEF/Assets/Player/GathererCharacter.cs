@@ -3,11 +3,12 @@ using UnityEngine;
 public class GathererCharacter : MonoBehaviour
 {
     public float attackRange = 2f;         // 攻撃範囲
-    public float attackInterval = 1f;      // 攻撃間隔
+    public float attackInterval = 1f;     // 攻撃間隔
     private float attackTimer = 0f;
-    public InventoryManager inventory;     // インベントリ管理スクリプト
-    public int maxHP = 30;                 // キャラクターの最大HP
-    private int currentHP;                 // 現在のHP
+    public float moveSpeed = 3f;          // キャラクターの移動速度
+    public int maxHP = 30;                // キャラクターの最大HP
+    private int currentHP;                // 現在のHP
+    private BreakableObject targetObject; // 現在のターゲット
 
     private void Start()
     {
@@ -18,16 +19,63 @@ public class GathererCharacter : MonoBehaviour
     {
         attackTimer += Time.deltaTime;
 
-        // 近くの破壊可能オブジェクトを探して攻撃
-        Collider[] hitColliders = Physics.OverlapSphere(transform.position, attackRange);
-        foreach (var hitCollider in hitColliders)
+        // ターゲットが設定されていない場合、新しいターゲットを探す
+        if (targetObject == null || targetObject.IsBroken)
         {
-            BreakableObject target = hitCollider.GetComponent<BreakableObject>();
-            if (target != null && attackTimer >= attackInterval)
+            FindClosestTarget();
+        }
+
+        // ターゲットに接近して攻撃
+        if (targetObject != null)
+        {
+            MoveTowardsTarget();
+
+            // 攻撃範囲内に入ったら攻撃
+            float distanceToTarget = Vector3.Distance(transform.position, targetObject.transform.position);
+            if (distanceToTarget <= attackRange && attackTimer >= attackInterval)
             {
-                Attack(target);
+                Attack(targetObject);
                 attackTimer = 0f;
             }
+        }
+    }
+
+    private void FindClosestTarget()
+    {
+        // タグが"sozai"のオブジェクトを探す
+        GameObject[] candidates = GameObject.FindGameObjectsWithTag("sozai");
+        BreakableObject closestObject = null;
+        float closestDistance = float.MaxValue;
+
+        foreach (var candidate in candidates)
+        {
+            BreakableObject breakable = candidate.GetComponent<BreakableObject>();
+            if (breakable != null && !breakable.IsBroken)
+            {
+                float distance = Vector3.Distance(transform.position, candidate.transform.position);
+                if (distance < closestDistance)
+                {
+                    closestDistance = distance;
+                    closestObject = breakable;
+                }
+            }
+        }
+
+        targetObject = closestObject; // 最も近いターゲットを設定
+    }
+
+    private void MoveTowardsTarget()
+    {
+        if (targetObject != null)
+        {
+            // ターゲットの方向を計算
+            Vector3 direction = (targetObject.transform.position - transform.position).normalized;
+
+            // キャラクターを移動
+            transform.position += direction * moveSpeed * Time.deltaTime;
+
+            // ターゲットに向けて回転
+            transform.LookAt(new Vector3(targetObject.transform.position.x, transform.position.y, targetObject.transform.position.z));
         }
     }
 
@@ -41,16 +89,6 @@ public class GathererCharacter : MonoBehaviour
         {
             Debug.Log("キャラクターは力尽きました");
             Destroy(gameObject);
-        }
-    }
-
-    private void OnTriggerEnter(Collider other)
-    {
-        // ドロップしたアイテムを検出してインベントリに追加
-        if (other.CompareTag("Material"))
-        {
-            inventory.AddItem(other.gameObject);
-            Destroy(other.gameObject);
         }
     }
 }

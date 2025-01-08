@@ -8,9 +8,15 @@ public class BreakableObject : MonoBehaviour
     public Transform dropPosition;          // ドロップ位置
     public float dropRadius = 0.5f;         // ドロップするアイテムの範囲
 
+    // IsBrokenプロパティを追加
+    public bool IsBroken
+    {
+        get { return currentDurability <= 0; } // 耐久値が0以下なら破壊済み
+    }
+
     void Start()
     {
-        currentDurability = maxDurability;
+        currentDurability = maxDurability; // 現在の耐久値を初期化
     }
 
     public void TakeDamage()
