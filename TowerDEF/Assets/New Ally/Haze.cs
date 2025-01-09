@@ -24,6 +24,8 @@ public class Haze : MonoBehaviour, IDamageable, ISeasonEffect
 
     private bool seasonEffectApplied = false;
 
+    private Animator animator; // アニメーションを制御するためのAnimator
+
     void Start()
     {
         if (gm == null)
@@ -34,6 +36,12 @@ public class Haze : MonoBehaviour, IDamageable, ISeasonEffect
         if (gm == null)
         {
             Debug.LogError("GameManagerの参照が見つかりません。GameManagerが正しく設定されているか確認してください。");
+        }
+
+        animator = GetComponent<Animator>(); // Animatorの取得
+        if (animator == null)
+        {
+            Debug.LogWarning("Animatorがアタッチされていません！");
         }
     }
 
@@ -107,6 +115,12 @@ public class Haze : MonoBehaviour, IDamageable, ISeasonEffect
 
     void AttackTarget()
     {
+        // 攻撃アニメーションを再生
+        if (animator != null)
+        {
+            animator.SetTrigger("Attack");
+        }
+
         if (ApplyBuffFromUdeppo())
         {
             Collider[] colliders = Physics.OverlapSphere(transform.position, detectionRadius);
