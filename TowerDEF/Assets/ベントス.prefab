@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 4337576086531044857}
   m_Layer: 0
   m_Name: "\u30D9\u30F3\u30C8\u30B9"
-  m_TagString: Untagged
+  m_TagString: Benthos
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

@@ -42,21 +42,25 @@ public class GathererCharacter : MonoBehaviour
 
     private void FindClosestTarget()
     {
-        // タグが"sozai"のオブジェクトを探す
-        GameObject[] candidates = GameObject.FindGameObjectsWithTag("sozai");
+        // タグが"OkiaMi", "Benthos", "Plankton"のいずれかのオブジェクトを探す
+        string[] tags = { "OkiaMi", "Benthos", "Plankton" };
         BreakableObject closestObject = null;
         float closestDistance = float.MaxValue;
 
-        foreach (var candidate in candidates)
+        foreach (string tag in tags)
         {
-            BreakableObject breakable = candidate.GetComponent<BreakableObject>();
-            if (breakable != null && !breakable.IsBroken)
+            GameObject[] candidates = GameObject.FindGameObjectsWithTag(tag);
+            foreach (var candidate in candidates)
             {
-                float distance = Vector3.Distance(transform.position, candidate.transform.position);
-                if (distance < closestDistance)
+                BreakableObject breakable = candidate.GetComponent<BreakableObject>();
+                if (breakable != null && !breakable.IsBroken)
                 {
-                    closestDistance = distance;
-                    closestObject = breakable;
+                    float distance = Vector3.Distance(transform.position, candidate.transform.position);
+                    if (distance < closestDistance)
+                    {
+                        closestDistance = distance;
+                        closestObject = breakable;
+                    }
                 }
             }
         }
@@ -82,6 +86,11 @@ public class GathererCharacter : MonoBehaviour
     private void Attack(BreakableObject target)
     {
         target.TakeDamage();
+
+        // 素材タイプに応じてリソースを追加
+        GameManager.ResourceType resourceType = DetermineResourceType(target);
+        GameManager.Instance.AddResource(resourceType, 1);
+
         currentHP--;
 
         // HPが0以下の場合、キャラクターを削除
@@ -89,6 +98,28 @@ public class GathererCharacter : MonoBehaviour
         {
             Debug.Log("キャラクターは力尽きました");
             Destroy(gameObject);
+        }
+    }
+
+    private GameManager.ResourceType DetermineResourceType(BreakableObject target)
+    {
+        // ターゲットのタグに応じて適切なリソースタイプを決定
+        if (target.CompareTag("OkiaMi"))
+        {
+            return GameManager.ResourceType.OkiaMi;
+        }
+        else if (target.CompareTag("Benthos"))
+        {
+            return GameManager.ResourceType.Benthos;
+        }
+        else if (target.CompareTag("Plankton"))
+        {
+            return GameManager.ResourceType.Plankton;
+        }
+        else
+        {
+            Debug.LogWarning("未対応のタグ: " + target.tag);
+            return GameManager.ResourceType.OkiaMi; // デフォルト値
         }
     }
 }

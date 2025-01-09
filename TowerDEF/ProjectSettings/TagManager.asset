@@ -13,6 +13,9 @@ TagManager:
   - Kobanzame
   - esa
   - Map
+  - OkiaMi
+  - Benthos
+  - Plankton
   layers:
   - Default
   - TransparentFX
