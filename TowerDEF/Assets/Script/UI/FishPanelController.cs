@@ -6,7 +6,7 @@ public class FishPanelController : MonoBehaviour
     public RectTransform fishPanel;
 
     // ToggleButton（隣のボタン）のRectTransformを参照する
-    public RectTransform toggleButton;
+    public RectTransform toggleButton,toggleButton2;
 
     // スライドアニメーションの所要時間（秒単位）
     public float slideDuration = 0.5f;
@@ -18,7 +18,7 @@ public class FishPanelController : MonoBehaviour
     public Vector2 visiblePosition;
 
     // ボタンのオフセット（パネルの右端からの距離）
-    public Vector2 buttonOffset;
+    public Vector2 buttonOffset,buttonOffset2;
 
     // パネルが現在表示されているかを追跡するフラグ
     private bool isPanelVisible = true;
@@ -26,12 +26,17 @@ public class FishPanelController : MonoBehaviour
     void Start()
     {
         // 初期位置を設定
-        fishPanel.anchoredPosition = visiblePosition;
+        fishPanel.anchoredPosition = hiddenPosition;
 
         // ボタンの初期位置をFishPanelの右端に合わせて、オフセットを考慮
         toggleButton.anchoredPosition = new Vector2(
-            visiblePosition.x + fishPanel.sizeDelta.x + buttonOffset.x,
-            visiblePosition.y + buttonOffset.y
+            hiddenPosition.x + fishPanel.sizeDelta.x + buttonOffset.x,
+            hiddenPosition.y + buttonOffset.y
+            );
+
+        toggleButton2.anchoredPosition = new Vector2(
+            hiddenPosition.x + fishPanel.sizeDelta.x + buttonOffset2.x,
+            hiddenPosition.y + buttonOffset2.y
         );
     }
 
@@ -44,12 +49,12 @@ public class FishPanelController : MonoBehaviour
         if (isPanelVisible)
         {
             // パネルを隠すアニメーションを開始
-            StartCoroutine(SlidePanel(hiddenPosition));
+            StartCoroutine(SlidePanel(visiblePosition));
         }
         else
         {
             // パネルを表示するアニメーションを開始
-            StartCoroutine(SlidePanel(visiblePosition));
+            StartCoroutine(SlidePanel(hiddenPosition));
         }
         // 表示状態をトグル
         isPanelVisible = !isPanelVisible;
@@ -64,10 +69,18 @@ public class FishPanelController : MonoBehaviour
         // ToggleButtonの現在の位置を記録
         Vector2 startButtonPos = toggleButton.anchoredPosition;
 
+        // ToggleButtonの現在の位置を記録
+        Vector2 startButtonPos2 = toggleButton2.anchoredPosition;
+
         // ボタンの最終的な目標位置を計算
         Vector2 targetButtonPos = new Vector2(
             targetPosition.x + fishPanel.sizeDelta.x + buttonOffset.x,
             targetPosition.y + buttonOffset.y
+            );
+
+        Vector2 targetButtonPos2 = new Vector2(
+            targetPosition.x + fishPanel.sizeDelta.x + buttonOffset2.x,
+            targetPosition.y + buttonOffset2.y
         );
 
         float elapsedTime = 0f; // アニメーション経過時間の初期化
@@ -86,11 +99,15 @@ public class FishPanelController : MonoBehaviour
             // ToggleButtonをスライド
             toggleButton.anchoredPosition = Vector2.Lerp(startButtonPos, targetButtonPos, t);
 
+            // ToggleButtonをスライド
+            toggleButton2.anchoredPosition = Vector2.Lerp(startButtonPos, targetButtonPos2, t);
+
             yield return null; // 次のフレームまで待機
         }
 
         // 最終的な位置を正確に設定
         fishPanel.anchoredPosition = targetPosition;
         toggleButton.anchoredPosition = targetButtonPos;
+        toggleButton2.anchoredPosition = targetButtonPos2;
     }
 }

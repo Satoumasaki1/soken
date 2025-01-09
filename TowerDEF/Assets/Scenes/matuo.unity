@@ -890,10 +890,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   fishPanel: {fileID: 997742830}
   toggleButton: {fileID: 602002051}
+  toggleButton2: {fileID: 1917091349}
   slideDuration: 0.5
   hiddenPosition: {x: -795, y: 0}
   visiblePosition: {x: -1125, y: 0}
   buttonOffset: {x: -155, y: 386}
+  buttonOffset2: {x: -89, y: 450}
 --- !u!114 &1126727552 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 4798916547719010910, guid: b2dfc1e08f5e73e44865d148534e7587, type: 3}
@@ -1308,6 +1310,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!224 &1917091349 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 5247528880179167255, guid: b2dfc1e08f5e73e44865d148534e7587, type: 3}
+  m_PrefabInstance: {fileID: 4798916548772955985}
+  m_PrefabAsset: {fileID: 0}
 --- !u!114 &1976129203 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 5133543991006186830, guid: b2dfc1e08f5e73e44865d148534e7587, type: 3}
@@ -1542,7 +1549,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1289528431, guid: b2dfc1e08f5e73e44865d148534e7587, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 149.062
+      value: 149.06201
       objectReference: {fileID: 0}
     - target: {fileID: 1446246793, guid: b2dfc1e08f5e73e44865d148534e7587, type: 3}
       propertyPath: m_Name
@@ -1575,6 +1582,10 @@ PrefabInstance:
     - target: {fileID: 1550302596, guid: b2dfc1e08f5e73e44865d148534e7587, type: 3}
       propertyPath: m_AnchoredPosition.y
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1773481838, guid: b2dfc1e08f5e73e44865d148534e7587, type: 3}
+      propertyPath: m_ChildAlignment
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1831959541, guid: b2dfc1e08f5e73e44865d148534e7587, type: 3}
       propertyPath: gameManager
@@ -1720,9 +1731,13 @@ PrefabInstance:
       propertyPath: m_text
       value: ': 1'
       objectReference: {fileID: 0}
+    - target: {fileID: 4798916547719010910, guid: b2dfc1e08f5e73e44865d148534e7587, type: 3}
+      propertyPath: m_margin.z
+      value: 138.51178
+      objectReference: {fileID: 0}
     - target: {fileID: 4798916547719010911, guid: b2dfc1e08f5e73e44865d148534e7587, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 95.8
+      value: 91.2
       objectReference: {fileID: 0}
     - target: {fileID: 4798916548452943258, guid: b2dfc1e08f5e73e44865d148534e7587, type: 3}
       propertyPath: m_Name
