@@ -137,6 +137,8 @@ public class Kanisan : MonoBehaviour, IDamageable, ISeasonEffect
                         health = Mathf.Min(health, maxHealth);
                         gm.inventory[selectedFeed]--;
                         gm.UpdateResourceUI();
+                        // 体力バーを更新
+                        UpdateHealthBar();
                         Debug.Log($"{selectedFeed} で体力を回復しました。残り在庫: {gm.inventory[selectedFeed]}");
                     }
                     else
