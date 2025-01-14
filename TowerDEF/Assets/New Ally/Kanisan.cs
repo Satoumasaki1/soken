@@ -2,11 +2,11 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
 
-public class Kanisan : MonoBehaviour, IDamageable, ISeasonEffect
+public class Kanisan : MonoBehaviour, IDamageable, ISeasonEffect, IUpgradable
 {
     // Kanisanの基本プロパティ
     public int health = 10;
-    public int maxHealth = 10;
+    public int maxHealth = 10; //削除
     private bool maxHealthBuffApplied = false;
     public bool isBuffActive = false; // バフが有効かどうかのフラグ
     private int originalAttackDamage = 3;
@@ -32,8 +32,45 @@ public class Kanisan : MonoBehaviour, IDamageable, ISeasonEffect
 
     private bool seasonEffectApplied = false;
 
+    public void OnApplicationQuit()　//追加
+    {
+        SaveState();
+    }
+
+    public void Upgrade(int additionalHp, int additionalDamage)//追加
+    {
+        health += additionalHp;
+        attackDamage += additionalDamage;
+        Debug.Log(gameObject.name + " upgraded! HP: " + health + ", Damage: " + attackDamage);
+    }
+
+    public void SaveState()//追加
+    {
+        PlayerPrefs.SetInt($"{gameObject.name}_HP", health);
+        PlayerPrefs.SetInt($"{gameObject.name}_Damage", attackDamage);
+        Debug.Log($"{gameObject.name} state saved!");
+    }
+
+    public void LoadState()//追加
+    {
+        if (PlayerPrefs.HasKey($"{gameObject.name}_HP"))
+        {
+            health = PlayerPrefs.GetInt($"{gameObject.name}_HP");
+        }
+
+        if (PlayerPrefs.HasKey($"{gameObject.name}_Damage"))
+        {
+            attackDamage = PlayerPrefs.GetInt($"{gameObject.name}_Damage");
+        }
+
+        Debug.Log($"{gameObject.name} state loaded! HP: {health}, Damage: {attackDamage}");
+    }
+
     void Start()
     {
+
+        LoadState();//追加
+
         // GameManagerの参照を取得
         if (gm == null)
         {
