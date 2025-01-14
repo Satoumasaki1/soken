@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using UnityEngine.EventSystems;
 
 public class FeedCombineUIManager : MonoBehaviour
 {
@@ -9,6 +10,7 @@ public class FeedCombineUIManager : MonoBehaviour
     [SerializeField] private Button feedBButton;             // ミックスペレットボタン
     [SerializeField] private Button feedCButton;             // バイオフィードボタン
     [SerializeField] private TextMeshProUGUI resultText;     // 合成結果を表示するUI
+    [SerializeField] private TextMeshProUGUI descriptionText; // 餌の説明を表示するUI
     [SerializeField] private Button closeButton;             // ポップアップを閉じるボタン
 
     public GameManager gm;
@@ -23,6 +25,11 @@ public class FeedCombineUIManager : MonoBehaviour
         closeButton.onClick.AddListener(HidePopup);
 
         gm = GameManager.Instance;
+
+        // ボタンにホバーイベントを追加（スクリプト内で説明文を設定）
+        AddHoverEvents(feedAButton, "コマセ: 小魚用の餌です。オキアミとプランクトンを使って作成します。");
+        AddHoverEvents(feedBButton, "ミックスペレット: バランスの取れた餌。オキアミとベントスを使って作成します。");
+        AddHoverEvents(feedCButton, "バイオフィード: 特殊な餌。プランクトンとベントスを使って作成します。");
 
         // ポップアップを最初は非表示にする
         popupMenu.SetActive(false);
@@ -96,9 +103,6 @@ public class FeedCombineUIManager : MonoBehaviour
     // ポップアップを表示するメソッド
     public void ShowPopup()
     {
-        // ゲームを一時停止
-        //GameManager.Instance.PauseGame();
-
         popupMenu.SetActive(true);
         resultText.text = "作りたい餌を選んでください";
     }
@@ -106,9 +110,33 @@ public class FeedCombineUIManager : MonoBehaviour
     // ポップアップを閉じるメソッド
     public void HidePopup()
     {
-        // ゲームの一時停止を解除
-        //GameManager.Instance.ResumeGame();
-
         popupMenu.SetActive(false);
+        descriptionText.text = ""; // 説明をクリア
+    }
+
+    // ボタンにホバーイベントを追加するメソッド
+    private void AddHoverEvents(Button button, string description)
+    {
+        EventTrigger trigger = button.gameObject.GetComponent<EventTrigger>();
+        if (trigger == null)
+        {
+            trigger = button.gameObject.AddComponent<EventTrigger>();
+        }
+
+        // ホバー時に説明を表示
+        EventTrigger.Entry entryEnter = new EventTrigger.Entry
+        {
+            eventID = EventTriggerType.PointerEnter
+        };
+        entryEnter.callback.AddListener((data) => { descriptionText.text = description; });
+        trigger.triggers.Add(entryEnter);
+
+        // ホバーが外れたときに説明を消す
+        EventTrigger.Entry entryExit = new EventTrigger.Entry
+        {
+            eventID = EventTriggerType.PointerExit
+        };
+        entryExit.callback.AddListener((data) => { descriptionText.text = ""; });
+        trigger.triggers.Add(entryExit);
     }
 }
