@@ -153,6 +153,7 @@ public class FishDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, I
         if (objectStar != null)
         {
             objectStar.Play(); // パーティクルを再生
+            Debug.Log("パーティクル再生");
         }
         else
         {
