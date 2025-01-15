@@ -230,4 +230,4 @@ MonoBehaviour:
   canvas: {fileID: 0}
   fishPrefab: {fileID: 8406294964934083184, guid: 43e101c13fe662643af3533428831cf4, type: 3}
   yOffset: 0.5
-  objectStarPrefab: {fileID: 6364204782024598179, guid: d0ea393c19ec6994fa47359e24063cdb, type: 3}
+  objectStar: {fileID: 6364204782024598179, guid: d0ea393c19ec6994fa47359e24063cdb, type: 3}
