@@ -148,11 +148,12 @@ public class FishDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, I
     {
         // 魚を場に生成
         Instantiate(fishPrefab, position, Quaternion.identity);
+        objectStar.Play(); // パーティクルを再生
         Debug.Log($"{fishType} を設置しました！");
         // object star パーティクルを再生する
         if (objectStar != null)
         {
-            objectStar.Play(); // パーティクルを再生
+            
             Debug.Log("パーティクル再生");
         }
         else
