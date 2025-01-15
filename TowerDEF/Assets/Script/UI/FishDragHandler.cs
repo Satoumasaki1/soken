@@ -17,7 +17,7 @@ public class FishDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, I
 
     private bool isDragging = false; // ドラッグ中かどうかを管理するフラグ
 
-    public ParticleSystem objectStar;//設置星パーティクル
+    [SerializeField] public ParticleSystem objectStar;//設置星パーティクル
 
 
 
