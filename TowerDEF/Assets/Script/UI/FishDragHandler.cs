@@ -9,26 +9,32 @@ public class FishDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, I
     [SerializeField] private Canvas canvas; // UI用のCanvas
     [SerializeField] private GameObject fishPrefab; // 場に設置する魚のPrefab
     [SerializeField] private float yOffset = 2f; // 魚を少し上に配置するためのオフセット（デフォルト値2）
+    [SerializeField] private ParticleSystem objectStarPrefab; // スターエフェクトのプレハブ
 
     private GameObject dragPreview; // ドラッグ中のプレビュー用オブジェクト
     private RectTransform dragPreviewRectTransform;
 
     private bool canDrag = true; // ドラッグ可能かどうかを判定するフラグ
-
     private bool isDragging = false; // ドラッグ中かどうかを管理するフラグ
-
-    [SerializeField] public ParticleSystem objectStar;//設置星パーティクル
-
-
 
     public void Start()
     {
-        gameManager = GameObject.Find("GameManager").GetComponent<GameManager>();
+        // GameManagerを自動取得
+        if (gameManager == null)
+        {
+            gameManager = GameObject.Find("GameManager").GetComponent<GameManager>();
+        }
+
+        // Canvasを自動取得
         if (canvas == null)
         {
             canvas = FindObjectOfType<Canvas>();
             Debug.Log(canvas != null ? "Canvasを自動取得しました。" : "Canvasが見つかりませんでした。");
         }
+
+        // Debug: 必要なコンポーネントが設定されているか確認
+        if (fishPrefab == null) Debug.LogWarning("FishPrefabが設定されていません！");
+        if (objectStarPrefab == null) Debug.LogWarning("スターエフェクトPrefabが設定されていません！");
     }
 
     public void OnBeginDrag(PointerEventData eventData)
@@ -46,14 +52,10 @@ public class FishDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, I
         // ドラッグ中に表示するプレビューオブジェクトを作成
         dragPreview = new GameObject("DragPreview");
         dragPreview.transform.SetParent(canvas.transform, false);
-        Debug.Log($"Parent: {dragPreview.transform.parent.name}");
-
 
         // プレビューにImageコンポーネントを追加
-        var image = dragPreview.AddComponent<UnityEngine.UI.Image>();
-        // コンポーネント追加後にログを出力
-        Debug.Log("Imageコンポーネントを追加しました。");
-        var originalImage = GetComponent<UnityEngine.UI.Image>();
+        var image = dragPreview.AddComponent<Image>();
+        var originalImage = GetComponent<Image>();
 
         // スプライトをコピー
         image.sprite = originalImage.sprite;
@@ -125,6 +127,7 @@ public class FishDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, I
                     SpawnFishAt(spawnPosition);  // 魚を設置
                     gameManager.finventory[fishType]--; // 在庫を減らす
                     gameManager.UpdateResourceUI();
+
                     // 在庫減少後、UIを更新するためにFishInventoryUIに通知
                     FishInventoryUIManager fishInventoryUI = GameObject.Find("FishInventoryUIManager").GetComponent<FishInventoryUIManager>();
                     if (fishInventoryUI != null)
@@ -148,17 +151,20 @@ public class FishDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, I
     {
         // 魚を場に生成
         Instantiate(fishPrefab, position, Quaternion.identity);
-        objectStar.Play(); // パーティクルを再生
-        Debug.Log($"{fishType} を設置しました！");
-        // object star パーティクルを再生する
-        if (objectStar != null)
+
+        // パーティクルを魚の位置で生成して再生
+        if (objectStarPrefab != null)
         {
-            
-            Debug.Log("パーティクル再生");
+            ParticleSystem particle = Instantiate(objectStarPrefab, position, Quaternion.identity);
+            particle.Play();
+            Debug.Log($"{fishType} を設置しました！パーティクルを生成＆再生しました。");
+
+            // パーティクルの自動削除（Duration後）
+            Destroy(particle.gameObject, particle.main.duration);
         }
         else
         {
-            Debug.LogWarning("objectStar パーティクルがアタッチされていません！");
+            Debug.LogWarning("objectStarPrefab パーティクルプレハブが設定されていません！");
         }
     }
 }
