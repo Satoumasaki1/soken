@@ -9,7 +9,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 6463952448961423049, guid: 5b17dbf90f0c3c6478b108fdb4d3e313, type: 3}
       propertyPath: m_Name
-      value: Syako
+      value: Syako Variant
       objectReference: {fileID: 0}
     - target: {fileID: 6463952448961423050, guid: 5b17dbf90f0c3c6478b108fdb4d3e313, type: 3}
       propertyPath: m_Pivot.x
@@ -99,5 +99,9 @@ PrefabInstance:
       propertyPath: canvas
       value: 
       objectReference: {fileID: 0}
+    - target: {fileID: 6463952448961423061, guid: 5b17dbf90f0c3c6478b108fdb4d3e313, type: 3}
+      propertyPath: objectStar
+      value: 
+      objectReference: {fileID: 6364204782024598179, guid: d0ea393c19ec6994fa47359e24063cdb, type: 3}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 5b17dbf90f0c3c6478b108fdb4d3e313, type: 3}

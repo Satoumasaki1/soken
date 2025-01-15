@@ -95,9 +95,13 @@ PrefabInstance:
       propertyPath: canvas
       value: 
       objectReference: {fileID: 0}
+    - target: {fileID: 525317821512384427, guid: 99d91add79770b243a3c9647bc069f21, type: 3}
+      propertyPath: objectStar
+      value: 
+      objectReference: {fileID: 6364204782024598179, guid: d0ea393c19ec6994fa47359e24063cdb, type: 3}
     - target: {fileID: 1248045131611186523, guid: 99d91add79770b243a3c9647bc069f21, type: 3}
       propertyPath: m_Name
-      value: Tyou
+      value: Tyou Variant
       objectReference: {fileID: 0}
     - target: {fileID: 1248045131611186523, guid: 99d91add79770b243a3c9647bc069f21, type: 3}
       propertyPath: m_IsActive

@@ -95,9 +95,13 @@ PrefabInstance:
       propertyPath: canvas
       value: 
       objectReference: {fileID: 0}
+    - target: {fileID: 4721842937509864509, guid: f806d8d011f8ef7409b19c0d092c3e81, type: 3}
+      propertyPath: objectStar
+      value: 
+      objectReference: {fileID: 6364204782024598179, guid: d0ea393c19ec6994fa47359e24063cdb, type: 3}
     - target: {fileID: 4721842937509864511, guid: f806d8d011f8ef7409b19c0d092c3e81, type: 3}
       propertyPath: m_Name
-      value: Uni
+      value: Uni Variant
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: f806d8d011f8ef7409b19c0d092c3e81, type: 3}
