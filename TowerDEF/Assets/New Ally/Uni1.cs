@@ -1,8 +1,8 @@
 using UnityEngine;
 
-public class Uni1 : MonoBehaviour
+public class Uni1 : MonoBehaviour, IUpgradable
 {
-    public float maxHealth = 10f;
+    public int maxHealth = 10;
     private float currentHealth;
     public int attackPower = 5;
     public float attackRange = 2f;
@@ -13,9 +13,44 @@ public class Uni1 : MonoBehaviour
     private Collider[] nearbyEnemies = new Collider[10];
     private Transform currentTarget;
 
-    // èâä˙âª
+    public void OnApplicationQuit()Å@//í«â¡
+    {
+        SaveState();
+    }
+
+    public void Upgrade(int additionalHp, int additionalDamage, int additionaRadius)//í«â¡
+    {
+        maxHealth += additionalHp;
+        attackPower += additionalDamage;
+        Debug.Log(gameObject.name + " upgraded! HP: " + maxHealth + ", Damage: " + attackPower);
+    }
+
+    public void SaveState()//í«â¡
+    {
+        PlayerPrefs.SetInt($"{gameObject.name}_HP", maxHealth);
+        PlayerPrefs.SetInt($"{gameObject.name}_Damage", attackPower);
+        Debug.Log($"{gameObject.name} state saved!");
+    }
+
+    public void LoadState()//í«â¡
+    {
+        if (PlayerPrefs.HasKey($"{gameObject.name}_HP"))
+        {
+            maxHealth = PlayerPrefs.GetInt($"{gameObject.name}_HP");
+        }
+
+        if (PlayerPrefs.HasKey($"{gameObject.name}_Damage"))
+        {
+            attackPower = PlayerPrefs.GetInt($"{gameObject.name}_Damage");
+        }
+
+        Debug.Log($"{gameObject.name} state loaded! HP: { maxHealth}, Damage: {attackPower}");
+    }
+
     void Start()
     {
+        LoadState();//í«â¡
+
         currentHealth = maxHealth;
     }
 

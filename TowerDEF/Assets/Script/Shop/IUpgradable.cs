@@ -1,4 +1,4 @@
 public interface IUpgradable
 {
-    void Upgrade(int additionalHp, int additionalDamage); // 強化メソッド
+    void Upgrade(int additionalHp, int additionalDamage, int additionaRadius); // 強化メソッド
 }

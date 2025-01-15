@@ -37,11 +37,12 @@ public class Kanisan : MonoBehaviour, IDamageable, ISeasonEffect, IUpgradable
         SaveState();
     }
 
-    public void Upgrade(int additionalHp, int additionalDamage)//’Ç‰Á
+    public void Upgrade(int additionalHp, int additionalDamage, int additionaRadius)//’Ç‰Á
     {
         health += additionalHp;
         attackDamage += additionalDamage;
-        Debug.Log(gameObject.name + " upgraded! HP: " + health + ", Damage: " + attackDamage);
+        detectionRadius += additionaRadius;
+        Debug.Log(gameObject.name + " upgraded! HP: " + health + ", Damage: " + attackDamage + ", Damage: " + detectionRadius);
     }
 
     public void SaveState()//’Ç‰Á

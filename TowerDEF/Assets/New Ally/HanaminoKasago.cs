@@ -1,7 +1,7 @@
 using UnityEngine;
 using System.Collections;
 
-public class HanaminoKasago : MonoBehaviour, IDamageable, ISeasonEffect
+public class HanaminoKasago : MonoBehaviour, IDamageable, ISeasonEffect, IUpgradable
 {
     // HanaminoKasagoÇÃëÃóÕÇ∆ç≈ëÂëÃóÕ
     public float buffMultiplier = 1.5f; // çUåÇÉoÉtÇÃî{ó¶
@@ -22,6 +22,41 @@ public class HanaminoKasago : MonoBehaviour, IDamageable, ISeasonEffect
     private GameManager gm;
 
     private bool seasonEffectApplied = false;
+
+    public void OnApplicationQuit()Å@//í«â¡
+    {
+        SaveState();
+    }
+
+    public void Upgrade(int additionalHp, int additionalDamage, int additionaRadius)//í«â¡
+    {
+        health += additionalHp;
+        attackDamage += additionalDamage;
+        detectionRadius += additionaRadius;
+        Debug.Log(gameObject.name + " upgraded! HP: " + health + ", Damage: " + attackDamage + ", Damage: " + detectionRadius);
+    }
+
+    public void SaveState()//í«â¡
+    {
+        PlayerPrefs.SetInt($"{gameObject.name}_HP", health);
+        PlayerPrefs.SetInt($"{gameObject.name}_Damage", attackDamage);
+        Debug.Log($"{gameObject.name} state saved!");
+    }
+
+    public void LoadState()//í«â¡
+    {
+        if (PlayerPrefs.HasKey($"{gameObject.name}_HP"))
+        {
+            health = PlayerPrefs.GetInt($"{gameObject.name}_HP");
+        }
+
+        if (PlayerPrefs.HasKey($"{gameObject.name}_Damage"))
+        {
+            attackDamage = PlayerPrefs.GetInt($"{gameObject.name}_Damage");
+        }
+
+        Debug.Log($"{gameObject.name} state loaded! HP: {health}, Damage: {attackDamage}");
+    }
 
     void Start()
     {

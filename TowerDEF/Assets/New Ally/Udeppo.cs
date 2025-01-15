@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class Udeppo : MonoBehaviour, IDamageable
+public class Udeppo : MonoBehaviour, IDamageable, IUpgradable
 {
     // Udeppoの体力
     public int health = 20;
@@ -21,8 +21,45 @@ public class Udeppo : MonoBehaviour, IDamageable
     [SerializeField]
     private GameManager gm;
 
+    public void OnApplicationQuit()　//追加
+    {
+        SaveState();
+    }
+
+    public void Upgrade(int additionalHp, int additionalDamage, int additionaRadius)//追加
+    {
+        health += additionalHp;
+        attackDamage += additionalDamage;
+        detectionRadius += additionaRadius;
+        Debug.Log(gameObject.name + " upgraded! HP: " + health + ", Damage: " + attackDamage + ", Damage: " + detectionRadius);
+    }
+
+    public void SaveState()//追加
+    {
+        PlayerPrefs.SetInt($"{gameObject.name}_HP", health);
+        PlayerPrefs.SetInt($"{gameObject.name}_Damage", attackDamage);
+        Debug.Log($"{gameObject.name} state saved!");
+    }
+
+    public void LoadState()//追加
+    {
+        if (PlayerPrefs.HasKey($"{gameObject.name}_HP"))
+        {
+            health = PlayerPrefs.GetInt($"{gameObject.name}_HP");
+        }
+
+        if (PlayerPrefs.HasKey($"{gameObject.name}_Damage"))
+        {
+            attackDamage = PlayerPrefs.GetInt($"{gameObject.name}_Damage");
+        }
+
+        Debug.Log($"{gameObject.name} state loaded! HP: {health}, Damage: {attackDamage}");
+    }
+
     void Start()
     {
+        LoadState();//追加
+
         // GameManagerの参照がインスペクターで設定されていない場合、自動的に取得
         if (gm == null)
         {

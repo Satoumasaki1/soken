@@ -1,7 +1,7 @@
 using UnityEngine;
 using System.Collections;
 
-public class Haze : MonoBehaviour, IDamageable, ISeasonEffect
+public class Haze : MonoBehaviour, IDamageable, ISeasonEffect, IUpgradable
 {
     // Hazeの体力と最大体力
     public float buffMultiplier = 1.5f; // 攻撃バフの倍率
@@ -26,8 +26,45 @@ public class Haze : MonoBehaviour, IDamageable, ISeasonEffect
 
     private Animator animator; // アニメーションを制御するためのAnimator
 
+    public void OnApplicationQuit()　//追加
+    {
+        SaveState();
+    }
+
+    public void Upgrade(int additionalHp, int additionalDamage, int additionaRadius)//追加
+    {
+        health += additionalHp;
+        attackDamage += additionalDamage;
+        detectionRadius += additionaRadius;
+        Debug.Log(gameObject.name + " upgraded! HP: " + health + ", Damage: " + attackDamage + ", Damage: " + detectionRadius);
+    }
+
+    public void SaveState()//追加
+    {
+        PlayerPrefs.SetInt($"{gameObject.name}_HP", health);
+        PlayerPrefs.SetInt($"{gameObject.name}_Damage", attackDamage);
+        Debug.Log($"{gameObject.name} state saved!");
+    }
+
+    public void LoadState()//追加
+    {
+        if (PlayerPrefs.HasKey($"{gameObject.name}_HP"))
+        {
+            health = PlayerPrefs.GetInt($"{gameObject.name}_HP");
+        }
+
+        if (PlayerPrefs.HasKey($"{gameObject.name}_Damage"))
+        {
+            attackDamage = PlayerPrefs.GetInt($"{gameObject.name}_Damage");
+        }
+
+        Debug.Log($"{gameObject.name} state loaded! HP: {health}, Damage: {attackDamage}");
+    }
+
     void Start()
     {
+        LoadState();//追加
+
         if (gm == null)
         {
             gm = GameManager.Instance != null ? GameManager.Instance : GameObject.Find("GameManager").GetComponent<GameManager>();
