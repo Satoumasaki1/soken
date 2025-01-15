@@ -17,6 +17,9 @@ public class FishDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, I
 
     private bool isDragging = false; // ドラッグ中かどうかを管理するフラグ
 
+    public ParticleSystem objectStar;//設置星パーティクル
+
+
 
     public void Start()
     {
@@ -146,5 +149,14 @@ public class FishDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, I
         // 魚を場に生成
         Instantiate(fishPrefab, position, Quaternion.identity);
         Debug.Log($"{fishType} を設置しました！");
+        // object star パーティクルを再生する
+        if (objectStar != null)
+        {
+            objectStar.Play(); // パーティクルを再生
+        }
+        else
+        {
+            Debug.LogWarning("objectStar パーティクルがアタッチされていません！");
+        }
     }
 }

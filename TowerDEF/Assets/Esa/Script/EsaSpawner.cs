@@ -18,6 +18,8 @@ public class EsaSpawner : MonoBehaviour
 
     private GameManager gameManager; // GameManagerのインスタンス参照
 
+    public ParticleSystem objectStar; //設置したときの星パーティクル
+
     void Start()
     {
         // GameManagerのインスタンスを取得

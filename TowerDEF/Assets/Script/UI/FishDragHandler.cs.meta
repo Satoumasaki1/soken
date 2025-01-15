@@ -3,7 +3,11 @@ guid: 2617dd011bdc36046965c8dc0010bead
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2
-  defaultReferences: []
+  defaultReferences:
+  - gameManager: {instanceID: 0}
+  - canvas: {instanceID: 0}
+  - fishPrefab: {instanceID: 0}
+  - objectStar: {fileID: 6364204782024598179, guid: d0ea393c19ec6994fa47359e24063cdb, type: 3}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 
