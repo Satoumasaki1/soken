@@ -19,6 +19,10 @@ PrefabInstance:
       propertyPath: objectStar
       value: 
       objectReference: {fileID: 6364204782024598179, guid: d0ea393c19ec6994fa47359e24063cdb, type: 3}
+    - target: {fileID: 8429542640147982969, guid: 51d0ee68def16ef41b81fb310fa25068, type: 3}
+      propertyPath: objectStarPrefab
+      value: 
+      objectReference: {fileID: 6364204782024598179, guid: d0ea393c19ec6994fa47359e24063cdb, type: 3}
     - target: {fileID: 8472022804544089430, guid: 51d0ee68def16ef41b81fb310fa25068, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
