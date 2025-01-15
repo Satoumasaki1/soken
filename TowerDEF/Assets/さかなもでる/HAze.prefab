@@ -75,6 +75,7 @@ GameObject:
   - component: {fileID: 2767693694550160350}
   - component: {fileID: 8289303049531757}
   - component: {fileID: 246951611560272021}
+  - component: {fileID: -2838132658090819543}
   m_Layer: 0
   m_Name: HAze
   m_TagString: Ally
@@ -133,6 +134,27 @@ MonoBehaviour:
   detectionRadius: 10
   attackCooldown: 1
   gm: {fileID: 0}
+--- !u!95 &-2838132658090819543
+Animator:
+  serializedVersion: 5
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3252446022201272676}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: a6418dc149217cb45a9c5c59d5cb6ae4, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &3412848847785640548
 GameObject:
   m_ObjectHideFlags: 0
