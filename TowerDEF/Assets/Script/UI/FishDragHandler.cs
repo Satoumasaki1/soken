@@ -4,28 +4,26 @@ using UnityEngine.UI;
 
 public class FishDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
-    [SerializeField] private GameManager gameManager; // GameManagerの参照
-    [SerializeField] private GameManager.ResourceFishType fishType; // この魚の種類
-    [SerializeField] private Canvas canvas; // UI用のCanvas
-    [SerializeField] private GameObject fishPrefab; // 場に設置する魚のPrefab
-    [SerializeField] private ParticleSystem objectStarPrefab; // パーティクルシステムのプレハブ
-    [SerializeField] private float yOffset = 2f; // 魚を少し上に配置するためのオフセット（デフォルト値2）
+    [SerializeField] private GameManager gameManager;
+    [SerializeField] private GameManager.ResourceFishType fishType;
+    [SerializeField] private Canvas canvas;
+    [SerializeField] private GameObject fishPrefab;
+    [SerializeField] private ParticleSystem objectStarPrefab;
+    [SerializeField] private float yOffset = 2f;
 
-    private GameObject dragPreview; // ドラッグ中のプレビュー用オブジェクト
+    private GameObject dragPreview;
     private RectTransform dragPreviewRectTransform;
 
-    private bool canDrag = true; // ドラッグ可能かどうかを判定するフラグ
-    private bool isDragging = false; // ドラッグ中かどうかを管理するフラグ
+    private bool canDrag = true;
+    private bool isDragging = false;
 
     public void Start()
     {
-        // GameManagerを自動取得
         if (gameManager == null)
         {
             gameManager = GameObject.Find("GameManager").GetComponent<GameManager>();
         }
 
-        // Canvasを自動取得
         if (canvas == null)
         {
             canvas = FindObjectOfType<Canvas>();
@@ -44,7 +42,6 @@ public class FishDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, I
         canDrag = true;
         isDragging = true;
 
-        // ドラッグ中に表示するプレビューオブジェクトを作成
         dragPreview = new GameObject("DragPreview");
         dragPreview.transform.SetParent(canvas.transform, false);
 
@@ -90,13 +87,8 @@ public class FishDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, I
             {
                 if (gameManager.finventory[fishType] > 0)
                 {
-                    // 魚を設置する位置を計算
                     Vector3 spawnPosition = hit.point + Vector3.up * yOffset;
-
-                    // 魚を生成してパーティクルを再生
                     SpawnFishAt(spawnPosition);
-
-                    // 在庫を減らし、UIを更新
                     gameManager.finventory[fishType]--;
                     gameManager.UpdateResourceUI();
                 }
@@ -106,27 +98,13 @@ public class FishDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, I
 
     private void SpawnFishAt(Vector3 position)
     {
-        // 魚を場に生成
         Instantiate(fishPrefab, position, Quaternion.identity);
 
-        // パーティクルを魚の位置で生成して再生
         if (objectStarPrefab != null)
         {
             ParticleSystem particle = Instantiate(objectStarPrefab, position, Quaternion.identity);
-
-            // パーティクルのシミュレーション空間を「World」に設定
-            var mainModule = particle.main;
-            mainModule.simulationSpace = ParticleSystemSimulationSpace.World;
-
-            // パーティクル再生
             particle.Play();
-
-            // パーティクルの再生終了後に自動削除
             Destroy(particle.gameObject, particle.main.duration);
-        }
-        else
-        {
-            Debug.LogWarning("objectStarPrefab パーティクルプレハブが設定されていません！");
         }
     }
 }
