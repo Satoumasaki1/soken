@@ -851,7 +851,7 @@ GameObject:
   - component: {fileID: 8151133337175737085}
   m_Layer: 0
   m_Name: "\u96EA\u3060\u308B\u307E"
-  m_TagString: Untagged
+  m_TagString: Winter
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

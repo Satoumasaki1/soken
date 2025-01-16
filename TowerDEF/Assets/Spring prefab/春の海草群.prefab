@@ -107515,7 +107515,7 @@ GameObject:
   - component: {fileID: 6392048992000449299}
   m_Layer: 0
   m_Name: "\u6625\u306E\u6D77\u8349\u7FA4"
-  m_TagString: Untagged
+  m_TagString: Spring
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
