@@ -14,7 +14,7 @@ public class Haze : MonoBehaviour, IDamageable, ISeasonEffect, IUpgradable
 
     // 攻撃関連の設定
     public float detectionRadius = 10f;
-    public float attackCooldown = 1.0f;
+    public float attackCooldown = 3.0f;
 
     private Transform target;
     private float lastAttackTime;
@@ -26,27 +26,32 @@ public class Haze : MonoBehaviour, IDamageable, ISeasonEffect, IUpgradable
 
     private Animator animator; // アニメーションを制御するためのAnimator
 
-    public void OnApplicationQuit()　//追加
+    // **新しく追加するエフェクト関連のフィールド**
+    [Header("攻撃エフェクト設定")]
+    public GameObject attackEffectPrefab; // エフェクトのプレハブ (damage ef)
+    public Transform effectSpawnPoint;   // エフェクトを生成する位置
+
+    public void OnApplicationQuit() //追加
     {
         SaveState();
     }
 
-    public void Upgrade(int additionalHp, int additionalDamage, int additionaRadius)//追加
+    public void Upgrade(int additionalHp, int additionalDamage, int additionaRadius) //追加
     {
         health += additionalHp;
         attackDamage += additionalDamage;
         detectionRadius += additionaRadius;
-        Debug.Log(gameObject.name + " upgraded! HP: " + health + ", Damage: " + attackDamage + ", Damage: " + detectionRadius);
+        Debug.Log(gameObject.name + " upgraded! HP: " + health + ", Damage: " + attackDamage + ", Radius: " + detectionRadius);
     }
 
-    public void SaveState()//追加
+    public void SaveState() //追加
     {
         PlayerPrefs.SetInt($"{gameObject.name}_HP", health);
         PlayerPrefs.SetInt($"{gameObject.name}_Damage", attackDamage);
         Debug.Log($"{gameObject.name} state saved!");
     }
 
-    public void LoadState()//追加
+    public void LoadState() //追加
     {
         if (PlayerPrefs.HasKey($"{gameObject.name}_HP"))
         {
@@ -63,7 +68,7 @@ public class Haze : MonoBehaviour, IDamageable, ISeasonEffect, IUpgradable
 
     void Start()
     {
-        LoadState();//追加
+        LoadState(); //追加
 
         if (gm == null)
         {
@@ -158,6 +163,10 @@ public class Haze : MonoBehaviour, IDamageable, ISeasonEffect, IUpgradable
             animator.SetTrigger("Attack");
         }
 
+        // エフェクトの再生（新規追加）
+        PlayAttackEffect();
+
+        // 範囲攻撃または単体攻撃
         if (ApplyBuffFromUdeppo())
         {
             Collider[] colliders = Physics.OverlapSphere(transform.position, detectionRadius);
@@ -177,6 +186,25 @@ public class Haze : MonoBehaviour, IDamageable, ISeasonEffect, IUpgradable
             IDamageable damageable = target.GetComponent<IDamageable>();
             damageable?.TakeDamage(attackDamage);
             Debug.Log($"{target.name} に {attackDamage} のダメージを与えました。");
+        }
+    }
+
+    // **新規追加: 攻撃エフェクトを再生するメソッド**
+    public void PlayAttackEffect()
+    {
+        if (attackEffectPrefab != null && effectSpawnPoint != null)
+        {
+            // エフェクトを生成
+            GameObject effect = Instantiate(attackEffectPrefab, effectSpawnPoint.position, effectSpawnPoint.rotation);
+
+            // 一定時間後に削除（2秒後）
+            Destroy(effect, 2.0f);
+
+            Debug.Log("攻撃エフェクトを生成しました！");
+        }
+        else
+        {
+            Debug.LogWarning("attackEffectPrefab または effectSpawnPoint が設定されていません！");
         }
     }
 
