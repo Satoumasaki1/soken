@@ -16,6 +16,10 @@ TagManager:
   - OkiaMi
   - Benthos
   - Plankton
+  - Spring
+  - Summer
+  - Autumn
+  - Winter
   layers:
   - Default
   - TransparentFX
