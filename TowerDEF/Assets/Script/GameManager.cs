@@ -23,6 +23,10 @@ public class GameManager : MonoBehaviour
 
     public bool isPaused = false; // ゲームが一時停止中かどうかを示すフラグ
 
+    // ボタンの参照を設定
+    public Button playButton;
+    public Button pauseButton;
+
     public bool IsPaused // ゲームの一時停止状態を外部から取得するためのプロパティ
     {
         get { return isPaused; }
@@ -86,6 +90,9 @@ public class GameManager : MonoBehaviour
         ForceResumeGame();  // 初回ウェーブ開始時の一時停止解除を強制
         StartWave();  // 最初のウェーブ開始
         CanvasPanel.SetActive(true);
+        // ボタンのクリックイベントに関数を設定
+        playButton.onClick.AddListener(OnPlayButtonClick);
+        pauseButton.onClick.AddListener(OnPauseButtonClick);
 
         // 餃の初期在庫を0に設定
         foreach (ResourceType resource in System.Enum.GetValues(typeof(ResourceType)))
@@ -137,6 +144,22 @@ public class GameManager : MonoBehaviour
         isPaused = !isPaused; // 現在の一時停止状態を反転
         ApplyPauseState(); // 状態に応じた処理を適用
         Debug.Log("Game " + (isPaused ? "Paused" : "Resumed"));
+    }
+    public void OnPlayButtonClick()
+    {
+        if (isPaused)  // 一時停止状態なら解除
+        {
+            TogglePause();
+        }
+    }
+
+    // 一時停止ボタンがクリックされたとき
+    public void OnPauseButtonClick()
+    {
+        if (!isPaused)  // ゲームが再生中なら一時停止
+        {
+            TogglePause();
+        }
     }
 
     // 一時停止を強制的に解除するメソッド
