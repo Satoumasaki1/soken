@@ -189,6 +189,14 @@ PrefabInstance:
       propertyPath: m_ConstrainProportionsScale
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 205103143801439422, guid: de5121a552fb8ae49b3031a5f2b7e8d9, type: 3}
+      propertyPath: m_LODs.Array.data[1].screenRelativeHeight
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 205103143801439422, guid: de5121a552fb8ae49b3031a5f2b7e8d9, type: 3}
+      propertyPath: m_LODs.Array.data[2].screenRelativeHeight
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: de5121a552fb8ae49b3031a5f2b7e8d9, type: 3}
 --- !u!4 &319230383277168766 stripped
@@ -500,6 +508,14 @@ PrefabInstance:
     - target: {fileID: 4996704983267676, guid: de5121a552fb8ae49b3031a5f2b7e8d9, type: 3}
       propertyPath: m_ConstrainProportionsScale
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 205103143801439422, guid: de5121a552fb8ae49b3031a5f2b7e8d9, type: 3}
+      propertyPath: m_LODs.Array.data[1].screenRelativeHeight
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 205103143801439422, guid: de5121a552fb8ae49b3031a5f2b7e8d9, type: 3}
+      propertyPath: m_LODs.Array.data[2].screenRelativeHeight
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: de5121a552fb8ae49b3031a5f2b7e8d9, type: 3}
@@ -969,6 +985,14 @@ PrefabInstance:
       propertyPath: m_ConstrainProportionsScale
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 205103143801439422, guid: de5121a552fb8ae49b3031a5f2b7e8d9, type: 3}
+      propertyPath: m_LODs.Array.data[1].screenRelativeHeight
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 205103143801439422, guid: de5121a552fb8ae49b3031a5f2b7e8d9, type: 3}
+      propertyPath: m_LODs.Array.data[2].screenRelativeHeight
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: de5121a552fb8ae49b3031a5f2b7e8d9, type: 3}
 --- !u!4 &3297569900748765158 stripped
@@ -1280,6 +1304,14 @@ PrefabInstance:
     - target: {fileID: 4996704983267676, guid: de5121a552fb8ae49b3031a5f2b7e8d9, type: 3}
       propertyPath: m_ConstrainProportionsScale
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 205103143801439422, guid: de5121a552fb8ae49b3031a5f2b7e8d9, type: 3}
+      propertyPath: m_LODs.Array.data[1].screenRelativeHeight
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 205103143801439422, guid: de5121a552fb8ae49b3031a5f2b7e8d9, type: 3}
+      propertyPath: m_LODs.Array.data[2].screenRelativeHeight
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: de5121a552fb8ae49b3031a5f2b7e8d9, type: 3}
