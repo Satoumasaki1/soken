@@ -1,63 +1,80 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class SeasonObjectManager : MonoBehaviour
 {
-    // 対応するタグ名
-    private readonly string[] seasonTags = { "Spring", "Summer", "Autumn", "Winter" };
+    // 季節ごとのオブジェクトリストを保持する辞書
+    private Dictionary<GameManager.Season, List<GameObject>> seasonObjects = new Dictionary<GameManager.Season, List<GameObject>>();
 
-    private GameManager.Season currentSeasonCache;
-
-    private void Start()
+    private void Awake()
     {
-        // 初期状態を設定
+        // 季節ごとのリストを初期化
+        foreach (GameManager.Season season in System.Enum.GetValues(typeof(GameManager.Season)))
+        {
+            seasonObjects[season] = new List<GameObject>();
+        }
+
+        // 季節ごとのタグを持つオブジェクトを検索してリストに登録
+        RegisterSeasonObjects();
+    }
+
+    private void OnEnable()
+    {
+        // GameManager の季節変更イベントに登録
+        GameManager.WaveStarted += OnWaveStarted;
+    }
+
+    private void OnDisable()
+    {
+        // GameManager の季節変更イベントから登録解除
+        GameManager.WaveStarted -= OnWaveStarted;
+    }
+
+    private void OnWaveStarted()
+    {
+        // 現在の季節に基づいてオブジェクトを切り替え
         UpdateSeasonObjects(GameManager.Instance.currentSeason);
     }
 
-    private void Update()
+    private void RegisterSeasonObjects()
     {
-        // GameManager のインスタンスが存在するか確認
-        if (GameManager.Instance != null)
+        foreach (GameManager.Season season in System.Enum.GetValues(typeof(GameManager.Season)))
         {
-            GameManager.Season currentSeason = GameManager.Instance.currentSeason;
-
-            // 現在の季節が変更された場合のみ処理を行う
-            if (currentSeason != currentSeasonCache)
+            // 季節ごとのタグを検索
+            GameObject[] objectsWithTag = GameObject.FindGameObjectsWithTag(season.ToString());
+            foreach (GameObject obj in objectsWithTag)
             {
-                currentSeasonCache = currentSeason;
-                UpdateSeasonObjects(currentSeason);
+                seasonObjects[season].Add(obj);
             }
         }
     }
 
-    /// <summary>
-    /// 現在の季節に対応するオブジェクトを有効化し、それ以外を無効化する
-    /// </summary>
-    /// <param name="currentSeason">現在の季節</param>
     private void UpdateSeasonObjects(GameManager.Season currentSeason)
     {
-        // 全てのタグについて処理を行う
-        foreach (string tag in seasonTags)
+        // すべてのオブジェクトを無効化
+        foreach (var seasonList in seasonObjects.Values)
         {
-            // 現在のシーズンと一致するタグは有効化、一致しないタグは無効化
-            bool shouldActivate = tag == currentSeason.ToString();
-            SetObjectsActiveByTag(tag, shouldActivate);
+            foreach (GameObject obj in seasonList)
+            {
+                if (obj != null)
+                {
+                    obj.SetActive(false);
+                }
+            }
         }
-    }
 
-    /// <summary>
-    /// 指定されたタグを持つオブジェクトを有効化または無効化する
-    /// </summary>
-    /// <param name="tag">操作対象のタグ</param>
-    /// <param name="isActive">有効化する場合は true、無効化する場合は false</param>
-    private void SetObjectsActiveByTag(string tag, bool isActive)
-    {
-        // 指定されたタグを持つすべてのオブジェクトを取得
-        GameObject[] objects = GameObject.FindGameObjectsWithTag(tag);
-
-        // 各オブジェクトの状態を設定
-        foreach (GameObject obj in objects)
+        // 現在の季節に対応するオブジェクトを有効化
+        if (seasonObjects.ContainsKey(currentSeason))
         {
-            obj.SetActive(isActive);
+            foreach (GameObject obj in seasonObjects[currentSeason])
+            {
+                if (obj != null)
+                {
+                    obj.SetActive(true);
+                }
+            }
         }
+
+        Debug.Log($"Season changed to {currentSeason}. Objects updated.");
     }
 }
