@@ -6,6 +6,10 @@ public class SeasonObjectManager : MonoBehaviour
     // 季節ごとのオブジェクトリストを保持する辞書
     private Dictionary<GameManager.Season, List<GameObject>> seasonObjects = new Dictionary<GameManager.Season, List<GameObject>>();
 
+    // 季節ごとのSkyBoxマテリアルを設定する配列（インスペクターから設定可能）
+    [SerializeField]
+    private Material[] seasonSkyboxMaterials;
+
     private void Awake()
     {
         // 季節ごとのリストを初期化
@@ -34,6 +38,7 @@ public class SeasonObjectManager : MonoBehaviour
     {
         // 現在の季節に基づいてオブジェクトを切り替え
         UpdateSeasonObjects(GameManager.Instance.currentSeason);
+        UpdateSkybox(GameManager.Instance.currentSeason);
     }
 
     private void RegisterSeasonObjects()
@@ -76,5 +81,20 @@ public class SeasonObjectManager : MonoBehaviour
         }
 
         Debug.Log($"Season changed to {currentSeason}. Objects updated.");
+    }
+
+    private void UpdateSkybox(GameManager.Season currentSeason)
+    {
+        // 現在の季節に対応するSkyBoxマテリアルを設定
+        int seasonIndex = (int)currentSeason;
+        if (seasonSkyboxMaterials != null && seasonIndex >= 0 && seasonIndex < seasonSkyboxMaterials.Length)
+        {
+            RenderSettings.skybox = seasonSkyboxMaterials[seasonIndex];
+            Debug.Log($"Skybox updated for season: {currentSeason}");
+        }
+        else
+        {
+            Debug.LogWarning($"No Skybox material set for season: {currentSeason}");
+        }
     }
 }
