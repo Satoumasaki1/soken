@@ -1,5 +1,7 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class SeasonObjectManager : MonoBehaviour
 {
@@ -9,6 +11,15 @@ public class SeasonObjectManager : MonoBehaviour
     // 季節ごとのSkyBoxマテリアルを設定する配列（インスペクターから設定可能）
     [SerializeField]
     private Material[] seasonSkyboxMaterials;
+
+    // フェードイン・フェードアウト用のキャンバスとイメージ
+    [SerializeField]
+    private CanvasGroup fadeCanvasGroup;
+    [SerializeField]
+    private float fadeDuration = 1.0f;
+
+    // 現在の季節を記録（初期値はnull）
+    private GameManager.Season? previousSeason = null;
 
     private void Awake()
     {
@@ -36,9 +47,20 @@ public class SeasonObjectManager : MonoBehaviour
 
     private void OnWaveStarted()
     {
-        // 現在の季節に基づいてオブジェクトを切り替え
-        UpdateSeasonObjects(GameManager.Instance.currentSeason);
-        UpdateSkybox(GameManager.Instance.currentSeason);
+        var currentSeason = GameManager.Instance.currentSeason;
+
+        // 季節が切り替わった場合のみフェード処理を行う
+        if (previousSeason == null || currentSeason != previousSeason)
+        {
+            previousSeason = currentSeason; // 季節を更新
+            StartCoroutine(FadeSeasonChange(currentSeason));
+        }
+        else
+        {
+            // 季節が変わっていない場合は通常の更新のみ
+            UpdateSeasonObjects(currentSeason);
+            UpdateSkybox(currentSeason);
+        }
     }
 
     private void RegisterSeasonObjects()
@@ -52,6 +74,34 @@ public class SeasonObjectManager : MonoBehaviour
                 seasonObjects[season].Add(obj);
             }
         }
+    }
+
+    private IEnumerator FadeSeasonChange(GameManager.Season currentSeason)
+    {
+        // フェードアウト
+        yield return StartCoroutine(Fade(1.0f));
+
+        // 季節ごとのオブジェクトを更新
+        UpdateSeasonObjects(currentSeason);
+        UpdateSkybox(currentSeason);
+
+        // フェードイン
+        yield return StartCoroutine(Fade(0.0f));
+    }
+
+    private IEnumerator Fade(float targetAlpha)
+    {
+        float startAlpha = fadeCanvasGroup.alpha;
+        float time = 0f;
+
+        while (time < fadeDuration)
+        {
+            time += Time.deltaTime;
+            fadeCanvasGroup.alpha = Mathf.Lerp(startAlpha, targetAlpha, time / fadeDuration);
+            yield return null;
+        }
+
+        fadeCanvasGroup.alpha = targetAlpha;
     }
 
     private void UpdateSeasonObjects(GameManager.Season currentSeason)
