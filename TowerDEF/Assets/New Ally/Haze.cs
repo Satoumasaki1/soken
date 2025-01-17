@@ -26,17 +26,25 @@ public class Haze : MonoBehaviour, IDamageable, ISeasonEffect, IUpgradable
 
     private Animator animator; // アニメーションを制御するためのAnimator
 
-    // **新しく追加するエフェクト関連のフィールド**
+    // 攻撃エフェクト関連
     [Header("攻撃エフェクト設定")]
     public GameObject attackEffectPrefab; // エフェクトのプレハブ (damage ef)
     public Transform effectSpawnPoint;   // エフェクトを生成する位置
 
-    public void OnApplicationQuit() //追加
+    // **新規追加: 体当たりの動きを制御するためのフィールド**
+    [Header("体当たり設定")]
+    public float dashDistance = 2.0f; // 前進する距離
+    public float dashDuration = 0.2f; // 前進にかかる時間
+    public float returnDuration = 0.2f; // 後退にかかる時間
+
+    private bool isDashing = false; // 体当たり中かどうかを判定するフラグ
+
+    public void OnApplicationQuit()
     {
         SaveState();
     }
 
-    public void Upgrade(int additionalHp, int additionalDamage, int additionaRadius) //追加
+    public void Upgrade(int additionalHp, int additionalDamage, int additionaRadius)
     {
         health += additionalHp;
         attackDamage += additionalDamage;
@@ -44,14 +52,14 @@ public class Haze : MonoBehaviour, IDamageable, ISeasonEffect, IUpgradable
         Debug.Log(gameObject.name + " upgraded! HP: " + health + ", Damage: " + attackDamage + ", Radius: " + detectionRadius);
     }
 
-    public void SaveState() //追加
+    public void SaveState()
     {
         PlayerPrefs.SetInt($"{gameObject.name}_HP", health);
         PlayerPrefs.SetInt($"{gameObject.name}_Damage", attackDamage);
         Debug.Log($"{gameObject.name} state saved!");
     }
 
-    public void LoadState() //追加
+    public void LoadState()
     {
         if (PlayerPrefs.HasKey($"{gameObject.name}_HP"))
         {
@@ -68,7 +76,7 @@ public class Haze : MonoBehaviour, IDamageable, ISeasonEffect, IUpgradable
 
     void Start()
     {
-        LoadState(); //追加
+        LoadState();
 
         if (gm == null)
         {
@@ -163,7 +171,13 @@ public class Haze : MonoBehaviour, IDamageable, ISeasonEffect, IUpgradable
             animator.SetTrigger("Attack");
         }
 
-        // エフェクトの再生（新規追加）
+        // **体当たりの動きを開始**
+        if (!isDashing)
+        {
+            StartCoroutine(PerformDash());
+        }
+
+        // エフェクトの再生
         PlayAttackEffect();
 
         // 範囲攻撃または単体攻撃
@@ -189,17 +203,41 @@ public class Haze : MonoBehaviour, IDamageable, ISeasonEffect, IUpgradable
         }
     }
 
-    // **新規追加: 攻撃エフェクトを再生するメソッド**
+    // **新規追加: 体当たりの動きを制御するコルーチン**
+    private IEnumerator PerformDash()
+    {
+        isDashing = true;
+
+        // 前進する
+        Vector3 startPosition = transform.position;
+        Vector3 dashPosition = transform.position + transform.forward * dashDistance;
+        float elapsedTime = 0f;
+
+        while (elapsedTime < dashDuration)
+        {
+            transform.position = Vector3.Lerp(startPosition, dashPosition, elapsedTime / dashDuration);
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+
+        // 後退する
+        elapsedTime = 0f;
+        while (elapsedTime < returnDuration)
+        {
+            transform.position = Vector3.Lerp(dashPosition, startPosition, elapsedTime / returnDuration);
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+
+        isDashing = false;
+    }
+
     public void PlayAttackEffect()
     {
         if (attackEffectPrefab != null && effectSpawnPoint != null)
         {
-            // エフェクトを生成
             GameObject effect = Instantiate(attackEffectPrefab, effectSpawnPoint.position, effectSpawnPoint.rotation);
-
-            // 一定時間後に削除（2秒後）
             Destroy(effect, 2.0f);
-
             Debug.Log("攻撃エフェクトを生成しました！");
         }
         else
@@ -285,7 +323,7 @@ public class Haze : MonoBehaviour, IDamageable, ISeasonEffect, IUpgradable
         Gizmos.DrawWireSphere(transform.position, detectionRadius);
     }
 
-    // シーズンの効果を適用するメソッド
+    // **シーズンの効果を適用するメソッド**
     public void ApplySeasonEffect(GameManager.Season currentSeason)
     {
         if (seasonEffectApplied) return;
