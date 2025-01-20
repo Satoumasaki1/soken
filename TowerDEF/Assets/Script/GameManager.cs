@@ -35,6 +35,9 @@ public class GameManager : MonoBehaviour
     public delegate void OnWaveStart(); // ウェーブ開始時に発火するイベント
     public static event OnWaveStart WaveStarted; // イベント
 
+    public delegate void SeasonChangeHandler(GameManager.Season newSeason);
+    public static event SeasonChangeHandler SeasonChanged;
+
     public enum ResourceType { OkiaMi, Benthos, Plankton, FeedA, FeedB, FeedC, Uroko, Pearl } // リソースの種類
 
     public enum ResourceFishType { Kani, Tyoutyou, Kaisou, Syako, Koban, Teppou, Manta, Uni } // リソースの種類
@@ -289,6 +292,8 @@ public class GameManager : MonoBehaviour
             previousSeason = currentSeason;
             currentSeason = (Season)(((int)currentSeason + 1) % System.Enum.GetValues(typeof(Season)).Length);
             Debug.Log("Season changed to " + currentSeason);
+            // 季節変更イベントを発火
+            SeasonChanged?.Invoke(currentSeason);
         }
     }
 
