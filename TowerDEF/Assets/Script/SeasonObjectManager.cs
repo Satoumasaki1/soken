@@ -12,6 +12,17 @@ public class SeasonObjectManager : MonoBehaviour
     [SerializeField]
     private Material[] seasonSkyboxMaterials;
 
+    // 季節ごとのFog設定
+    [System.Serializable]
+    public class FogSettings
+    {
+        public Color fogColor;
+        public float fogDensity;
+    }
+
+    [SerializeField]
+    private FogSettings[] seasonFogSettings;
+
     // フェードイン・フェードアウト用のキャンバスとイメージ
     [SerializeField]
     private CanvasGroup fadeCanvasGroup;
@@ -31,35 +42,37 @@ public class SeasonObjectManager : MonoBehaviour
 
         // 季節ごとのタグを持つオブジェクトを検索してリストに登録
         RegisterSeasonObjects();
+
+        // ゲーム開始時にすべての季節のオブジェクトを非表示にする
+        HideAllSeasonObjects();
+
+        // 現在の季節の初期化処理
+        var currentSeason = GameManager.Instance.currentSeason;
+        previousSeason = currentSeason;
+        UpdateSeasonObjects(currentSeason);
+        UpdateSkybox(currentSeason);
+        UpdateFog(currentSeason);
     }
 
     private void OnEnable()
     {
         // GameManager の季節変更イベントに登録
-        GameManager.WaveStarted += OnWaveStarted;
+        GameManager.SeasonChanged += OnSeasonChanged;
     }
 
     private void OnDisable()
     {
         // GameManager の季節変更イベントから登録解除
-        GameManager.WaveStarted -= OnWaveStarted;
+        GameManager.SeasonChanged -= OnSeasonChanged;
     }
 
-    private void OnWaveStarted()
+    private void OnSeasonChanged(GameManager.Season currentSeason)
     {
-        var currentSeason = GameManager.Instance.currentSeason;
-
         // 季節が切り替わった場合のみフェード処理を行う
         if (previousSeason == null || currentSeason != previousSeason)
         {
             previousSeason = currentSeason; // 季節を更新
             StartCoroutine(FadeSeasonChange(currentSeason));
-        }
-        else
-        {
-            // 季節が変わっていない場合は通常の更新のみ
-            UpdateSeasonObjects(currentSeason);
-            UpdateSkybox(currentSeason);
         }
     }
 
@@ -76,6 +89,20 @@ public class SeasonObjectManager : MonoBehaviour
         }
     }
 
+    private void HideAllSeasonObjects()
+    {
+        foreach (var seasonList in seasonObjects.Values)
+        {
+            foreach (GameObject obj in seasonList)
+            {
+                if (obj != null)
+                {
+                    obj.SetActive(false);
+                }
+            }
+        }
+    }
+
     private IEnumerator FadeSeasonChange(GameManager.Season currentSeason)
     {
         // フェードアウト
@@ -84,6 +111,7 @@ public class SeasonObjectManager : MonoBehaviour
         // 季節ごとのオブジェクトを更新
         UpdateSeasonObjects(currentSeason);
         UpdateSkybox(currentSeason);
+        UpdateFog(currentSeason);
 
         // フェードイン
         yield return StartCoroutine(Fade(0.0f));
@@ -107,16 +135,7 @@ public class SeasonObjectManager : MonoBehaviour
     private void UpdateSeasonObjects(GameManager.Season currentSeason)
     {
         // すべてのオブジェクトを無効化
-        foreach (var seasonList in seasonObjects.Values)
-        {
-            foreach (GameObject obj in seasonList)
-            {
-                if (obj != null)
-                {
-                    obj.SetActive(false);
-                }
-            }
-        }
+        HideAllSeasonObjects();
 
         // 現在の季節に対応するオブジェクトを有効化
         if (seasonObjects.ContainsKey(currentSeason))
@@ -145,6 +164,22 @@ public class SeasonObjectManager : MonoBehaviour
         else
         {
             Debug.LogWarning($"No Skybox material set for season: {currentSeason}");
+        }
+    }
+
+    private void UpdateFog(GameManager.Season currentSeason)
+    {
+        // 現在の季節に対応するFogの設定を適用
+        int seasonIndex = (int)currentSeason;
+        if (seasonFogSettings != null && seasonIndex >= 0 && seasonIndex < seasonFogSettings.Length)
+        {
+            RenderSettings.fogColor = seasonFogSettings[seasonIndex].fogColor;
+            RenderSettings.fogDensity = seasonFogSettings[seasonIndex].fogDensity;
+            Debug.Log($"Fog updated for season: {currentSeason}");
+        }
+        else
+        {
+            Debug.LogWarning($"No fog settings set for season: {currentSeason}");
         }
     }
 }
