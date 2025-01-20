@@ -12,6 +12,17 @@ public class SeasonObjectManager : MonoBehaviour
     [SerializeField]
     private Material[] seasonSkyboxMaterials;
 
+    // 季節ごとのFog設定
+    [System.Serializable]
+    public class FogSettings
+    {
+        public Color fogColor;
+        public float fogDensity;
+    }
+
+    [SerializeField]
+    private FogSettings[] seasonFogSettings;
+
     // フェードイン・フェードアウト用のキャンバスとイメージ
     [SerializeField]
     private CanvasGroup fadeCanvasGroup;
@@ -60,6 +71,7 @@ public class SeasonObjectManager : MonoBehaviour
             // 季節が変わっていない場合は通常の更新のみ
             UpdateSeasonObjects(currentSeason);
             UpdateSkybox(currentSeason);
+            UpdateFog(currentSeason);
         }
     }
 
@@ -84,6 +96,7 @@ public class SeasonObjectManager : MonoBehaviour
         // 季節ごとのオブジェクトを更新
         UpdateSeasonObjects(currentSeason);
         UpdateSkybox(currentSeason);
+        UpdateFog(currentSeason);
 
         // フェードイン
         yield return StartCoroutine(Fade(0.0f));
@@ -145,6 +158,22 @@ public class SeasonObjectManager : MonoBehaviour
         else
         {
             Debug.LogWarning($"No Skybox material set for season: {currentSeason}");
+        }
+    }
+
+    private void UpdateFog(GameManager.Season currentSeason)
+    {
+        // 現在の季節に対応するFogの設定を適用
+        int seasonIndex = (int)currentSeason;
+        if (seasonFogSettings != null && seasonIndex >= 0 && seasonIndex < seasonFogSettings.Length)
+        {
+            RenderSettings.fogColor = seasonFogSettings[seasonIndex].fogColor;
+            RenderSettings.fogDensity = seasonFogSettings[seasonIndex].fogDensity;
+            Debug.Log($"Fog updated for season: {currentSeason}");
+        }
+        else
+        {
+            Debug.LogWarning($"No fog settings set for season: {currentSeason}");
         }
     }
 }
