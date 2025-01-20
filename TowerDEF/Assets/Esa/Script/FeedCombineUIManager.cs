@@ -32,7 +32,7 @@ public class FeedCombineUIManager : MonoBehaviour
         AddHoverEvents(feedCButton, "バイオフィード: 特殊な餌。プランクトンとベントスを使って作成します。");
 
         // ポップアップを最初は非表示にする
-        popupMenu.SetActive(false);
+        //popupMenu.SetActive(false);
     }
 
     // 合成餌を選択するメソッド

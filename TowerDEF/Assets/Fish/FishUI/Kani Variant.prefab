@@ -91,22 +91,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 5596798016186721672, guid: 99140efa41bb5e142aceba8d9d25e20b, type: 3}
-      propertyPath: canvas
-      value: 
-      objectReference: {fileID: 0}
-    - target: {fileID: 5596798016186721672, guid: 99140efa41bb5e142aceba8d9d25e20b, type: 3}
-      propertyPath: fishPrefab
-      value: 
-      objectReference: {fileID: 2860729491366959855, guid: 5c2438cb19041e24db9867b0efba324d, type: 3}
-    - target: {fileID: 5596798016186721672, guid: 99140efa41bb5e142aceba8d9d25e20b, type: 3}
-      propertyPath: objectStar
-      value: 
-      objectReference: {fileID: 6364204782024598179, guid: d0ea393c19ec6994fa47359e24063cdb, type: 3}
-    - target: {fileID: 5596798016186721672, guid: 99140efa41bb5e142aceba8d9d25e20b, type: 3}
-      propertyPath: objectStarPrefab
-      value: 
-      objectReference: {fileID: 6364204782024598179, guid: d0ea393c19ec6994fa47359e24063cdb, type: 3}
     - target: {fileID: 9128442611572462582, guid: 99140efa41bb5e142aceba8d9d25e20b, type: 3}
       propertyPath: m_Name
       value: Kani Variant

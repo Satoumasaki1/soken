@@ -7,18 +7,6 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 2319797326348928704, guid: b9f6581cef25fd74296167f90950bbb1, type: 3}
-      propertyPath: canvas
-      value: 
-      objectReference: {fileID: 0}
-    - target: {fileID: 2319797326348928704, guid: b9f6581cef25fd74296167f90950bbb1, type: 3}
-      propertyPath: objectStar
-      value: 
-      objectReference: {fileID: 6364204782024598179, guid: d0ea393c19ec6994fa47359e24063cdb, type: 3}
-    - target: {fileID: 2319797326348928704, guid: b9f6581cef25fd74296167f90950bbb1, type: 3}
-      propertyPath: objectStarPrefab
-      value: 
-      objectReference: {fileID: 6364204782024598179, guid: d0ea393c19ec6994fa47359e24063cdb, type: 3}
     - target: {fileID: 2319797326348928707, guid: b9f6581cef25fd74296167f90950bbb1, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
