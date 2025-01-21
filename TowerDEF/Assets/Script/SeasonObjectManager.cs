@@ -27,7 +27,7 @@ public class SeasonObjectManager : MonoBehaviour
     [SerializeField]
     private CanvasGroup fadeCanvasGroup;
     [SerializeField]
-    private float fadeDuration = 1.0f;
+    private float fadeDuration = 1.3f;
 
     // 現在の季節を記録（初期値はnull）
     private GameManager.Season? previousSeason = null;
