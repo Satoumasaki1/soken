@@ -52,7 +52,7 @@ public class GameManager : MonoBehaviour
     public TextMeshProUGUI okiaMiText, benthosText, planktonText, feedAText, feedBText, feedCText, urokoText, pearlText, Kani, Tyoutyou, Kaisou, Syako, Koban, Teppou, Manta, Uni;
 
     public int currentDay = 0; // 現在の日数
-    public List<int> enemyDays = new List<int> { 4, 8, 12, 16, 20 }; // 敵が攻めてくる特定の日
+    public List<int> enemyDays = new List<int> { 5, 9, 13, 18, 22, 26, 31, 35, 39, 44, 48, 52}; // 敵が攻めてくる特定の日
 
     [SerializeField]
     public TextMeshProUGUI WaveText; // TextMeshProで表示するウェーブ情報
@@ -266,10 +266,10 @@ public class GameManager : MonoBehaviour
         WaveStarted?.Invoke(); // ウェーブ開始イベントを発火
 
         // 特定のウェーブ番号で敵が攻めてくることを表示
-        if (currentWave % 3 == 0 || currentWave % 4 == 0)
+        /*if (currentWave % 3 == 0 || currentWave % 4 == 0)
         {
             Debug.Log("Wave " + currentWave + " has enemies attacking");
-        }
+        }*/
 
         ConvertFeedToFish();
 
