@@ -134,12 +134,7 @@ public class Kanisan : MonoBehaviour, IDamageable, ISeasonEffect, IUpgradable
         // 体力がマックスの場合は非表示
         healthBarInstance.SetActive(health < maxHealth);
 
-        // バーの色を更新
-        Image fill = healthSlider.fillRect.GetComponent<Image>();
-        if (fill != null)
-        {
-            fill.color = Color.Lerp(Color.red, Color.green, healthPercentage);
-        }
+        
     }
 
     private void OnDestroy()
@@ -199,6 +194,7 @@ public class Kanisan : MonoBehaviour, IDamageable, ISeasonEffect, IUpgradable
             Debug.Log("餌が選択されていません。");
         }
     }
+
 
     public void AttackOn()
     {
