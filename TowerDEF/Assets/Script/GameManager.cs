@@ -15,7 +15,7 @@ public class GameManager : MonoBehaviour
     public GameObject CanvasPanel;
     public EsaSpawner es;
 
-    public int totalWaves = 50; // 総ウェーブ数
+    public int totalWaves = 52; // 総ウェーブ数
     public float waveDuration = 10f; // ウェーブの持続時間
     public Text waveText; // ウェーブ情報のテキスト
     public int currentWave = 0; // 現在のウェーブ数
@@ -273,8 +273,8 @@ public class GameManager : MonoBehaviour
 
         ConvertFeedToFish();
 
-        // 7ウェーブごとに季節を変える
-        if (currentWave % 7 == 0)
+        // 13ウェーブごとに季節を変える
+        if (currentWave % 13 == 1)
         {
             ChangeSeason();
         }
