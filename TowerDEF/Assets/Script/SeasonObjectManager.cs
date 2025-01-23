@@ -35,7 +35,7 @@ public class SeasonObjectManager : MonoBehaviour
     private void Awake()
     {
         // 季節ごとのリストを初期化
-        foreach (GameManager.Season season in System.Enum.GetValues(typeof(GameManager.Season)))
+    foreach (GameManager.Season season in System.Enum.GetValues(typeof(GameManager.Season)))
         {
             seasonObjects[season] = new List<GameObject>();
         }
@@ -52,6 +52,21 @@ public class SeasonObjectManager : MonoBehaviour
         UpdateSeasonObjects(currentSeason);
         UpdateSkybox(currentSeason);
         UpdateFog(currentSeason);
+    }
+
+    private void Start()
+    {
+        // 現在の季節の初期化処理
+        var currentSeason = GameManager.Instance.currentSeason;
+        previousSeason = currentSeason;
+
+        // 必要なオブジェクトを即時に表示し、SkyBoxとFogを設定
+        UpdateSeasonObjects(currentSeason);
+        UpdateSkybox(currentSeason);
+        UpdateFog(currentSeason);
+
+        // フェード処理を開始
+        StartCoroutine(Fade(0.0f)); // 初期状態ではフェードインのみ実行
     }
 
     private void OnEnable()
