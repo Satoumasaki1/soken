@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UI;
 using System.Collections;
 
 public class Haze : MonoBehaviour, IDamageable, ISeasonEffect, IUpgradable
@@ -39,6 +40,12 @@ public class Haze : MonoBehaviour, IDamageable, ISeasonEffect, IUpgradable
 
     private bool isDashing = false; // 体当たり中かどうかを判定するフラグ
 
+    // **体力バー関連の設定**
+    [Header("体力バー関連")]
+    public GameObject healthBarPrefab;      // 体力バーのプレハブ
+    private GameObject healthBarInstance;   // 実際に生成された体力バー
+    private Slider healthSlider;            // 体力バーのスライダーコンポーネント
+
     public void OnApplicationQuit()
     {
         SaveState();
@@ -78,6 +85,7 @@ public class Haze : MonoBehaviour, IDamageable, ISeasonEffect, IUpgradable
     {
         LoadState();
 
+        // GameManager参照の取得
         if (gm == null)
         {
             gm = GameManager.Instance != null ? GameManager.Instance : GameObject.Find("GameManager").GetComponent<GameManager>();
@@ -93,6 +101,25 @@ public class Haze : MonoBehaviour, IDamageable, ISeasonEffect, IUpgradable
         {
             Debug.LogWarning("Animatorがアタッチされていません！");
         }
+
+        // **体力バーの初期化**
+        if (healthBarPrefab != null)
+        {
+            healthBarInstance = Instantiate(healthBarPrefab, transform); // 体力バーを生成
+            healthBarInstance.transform.localPosition = new Vector3(0, 0.5f, 0); // キャラクターの頭上に配置
+
+            healthSlider = healthBarInstance.GetComponentInChildren<Slider>(); // Slider コンポーネントを取得
+
+            if (healthSlider != null)
+            {
+                healthSlider.maxValue = 1; // スライダーの最大値を 1 に設定
+                healthSlider.value = (float)health / maxHealth; // 現在の体力に応じてスライダーの値を設定
+            }
+        }
+        else
+        {
+            Debug.LogError("HealthBarPrefabが設定されていません！");
+        }
     }
 
     void Update()
@@ -101,6 +128,35 @@ public class Haze : MonoBehaviour, IDamageable, ISeasonEffect, IUpgradable
         ApplyBuffFromUdeppo();
         ApplyIrukaBuff();
         AttackOn();
+
+        // **体力バーを更新**
+        UpdateHealthBar();
+    }
+
+    private void UpdateHealthBar()
+    {
+        if (healthSlider == null || healthBarInstance == null) return;
+
+        float healthPercentage = (float)health / maxHealth;
+        healthSlider.value = healthPercentage;
+
+        // 体力が最大の場合は体力バーを非表示
+        healthBarInstance.SetActive(health < maxHealth);
+
+        // **体力バーの回転をカメラに合わせる**
+        if (Camera.main != null)
+        {
+            healthBarInstance.transform.rotation = Quaternion.LookRotation(Camera.main.transform.forward);
+        }
+    }
+
+    private void OnDestroy()
+    {
+        // キャラクターが削除された場合、体力バーも削除
+        if (healthBarInstance != null)
+        {
+            Destroy(healthBarInstance);
+        }
     }
 
     private void OnMouseDown()
@@ -122,6 +178,10 @@ public class Haze : MonoBehaviour, IDamageable, ISeasonEffect, IUpgradable
                 health = Mathf.Min(health + 2, maxHealth);
                 gm.inventory[selectedFeed]--;
                 gm.UpdateResourceUI();
+
+                // **回復時に体力バーを更新**
+                UpdateHealthBar();
+
                 Debug.Log($"{selectedFeed} で体力を回復しました。残り在庫: {gm.inventory[selectedFeed]}");
             }
             else
@@ -165,22 +225,12 @@ public class Haze : MonoBehaviour, IDamageable, ISeasonEffect, IUpgradable
 
     void AttackTarget()
     {
-        // 攻撃アニメーションを再生
-        if (animator != null)
-        {
-            animator.SetTrigger("Attack");
-        }
+        if (animator != null) animator.SetTrigger("Attack");
 
-        // **体当たりの動きを開始**
-        if (!isDashing)
-        {
-            StartCoroutine(PerformDash());
-        }
+        if (!isDashing) StartCoroutine(PerformDash());
 
-        // エフェクトの再生
         PlayAttackEffect();
 
-        // 範囲攻撃または単体攻撃
         if (ApplyBuffFromUdeppo())
         {
             Collider[] colliders = Physics.OverlapSphere(transform.position, detectionRadius);
@@ -191,7 +241,6 @@ public class Haze : MonoBehaviour, IDamageable, ISeasonEffect, IUpgradable
                 {
                     IDamageable damageable = collider.GetComponent<IDamageable>();
                     damageable?.TakeDamage(attackDamage);
-                    Debug.Log($"{collider.name} に {attackDamage} のダメージを与えました。");
                 }
             }
         }
@@ -199,16 +248,13 @@ public class Haze : MonoBehaviour, IDamageable, ISeasonEffect, IUpgradable
         {
             IDamageable damageable = target.GetComponent<IDamageable>();
             damageable?.TakeDamage(attackDamage);
-            Debug.Log($"{target.name} に {attackDamage} のダメージを与えました。");
         }
     }
 
-    // **新規追加: 体当たりの動きを制御するコルーチン**
     private IEnumerator PerformDash()
     {
         isDashing = true;
 
-        // 前進する
         Vector3 startPosition = transform.position;
         Vector3 dashPosition = transform.position + transform.forward * dashDistance;
         float elapsedTime = 0f;
@@ -220,7 +266,6 @@ public class Haze : MonoBehaviour, IDamageable, ISeasonEffect, IUpgradable
             yield return null;
         }
 
-        // 後退する
         elapsedTime = 0f;
         while (elapsedTime < returnDuration)
         {
@@ -238,11 +283,6 @@ public class Haze : MonoBehaviour, IDamageable, ISeasonEffect, IUpgradable
         {
             GameObject effect = Instantiate(attackEffectPrefab, effectSpawnPoint.position, effectSpawnPoint.rotation);
             Destroy(effect, 2.0f);
-            Debug.Log("攻撃エフェクトを生成しました！");
-        }
-        else
-        {
-            Debug.LogWarning("attackEffectPrefab または effectSpawnPoint が設定されていません！");
         }
     }
 
@@ -261,14 +301,13 @@ public class Haze : MonoBehaviour, IDamageable, ISeasonEffect, IUpgradable
     {
         Collider[] colliders = Physics.OverlapSphere(transform.position, detectionRadius);
         bool isUdeppoNearby = false;
-        Debug.Log("近くにいるテッポウエビを検知しています...");
+
         foreach (Collider collider in colliders)
         {
             Udeppo udeppo = collider.GetComponent<Udeppo>();
             if (udeppo != null && udeppo.gameObject != gameObject)
             {
                 isUdeppoNearby = true;
-                Debug.Log($"テッポウエビを検知しました: {udeppo.name}");
                 break;
             }
         }
@@ -289,11 +328,11 @@ public class Haze : MonoBehaviour, IDamageable, ISeasonEffect, IUpgradable
         return isUdeppoNearby;
     }
 
-    // イルカのバフが有効か確認して適用する処理
     private void ApplyIrukaBuff()
     {
         Collider[] colliders = Physics.OverlapSphere(transform.position, detectionRadius);
         bool irukaNearby = false;
+
         foreach (Collider collider in colliders)
         {
             if (collider.TryGetComponent(out Iruka iruka))
@@ -303,7 +342,6 @@ public class Haze : MonoBehaviour, IDamageable, ISeasonEffect, IUpgradable
                 {
                     isBuffActive = true;
                     attackDamage = Mathf.RoundToInt(originalAttackDamage * buffMultiplier);
-                    Debug.Log($"{name} の攻撃力が強化されました: {attackDamage}");
                 }
                 break;
             }
@@ -313,17 +351,9 @@ public class Haze : MonoBehaviour, IDamageable, ISeasonEffect, IUpgradable
         {
             isBuffActive = false;
             attackDamage = originalAttackDamage;
-            Debug.Log($"{name} の攻撃力強化が終了しました。元の攻撃力に戻りました: {attackDamage}");
         }
     }
 
-    void OnDrawGizmosSelected()
-    {
-        Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(transform.position, detectionRadius);
-    }
-
-    // **シーズンの効果を適用するメソッド**
     public void ApplySeasonEffect(GameManager.Season currentSeason)
     {
         if (seasonEffectApplied) return;
@@ -334,37 +364,37 @@ public class Haze : MonoBehaviour, IDamageable, ISeasonEffect, IUpgradable
                 maxHealth += 10;
                 health = Mathf.Min(health + 10, maxHealth);
                 attackDamage = Mathf.RoundToInt(originalAttackDamage * 1.1f);
-                Debug.Log("春のバフが適用されました: 体力と攻撃力が少し上昇");
                 break;
             case GameManager.Season.Summer:
                 maxHealth -= 5;
                 health = Mathf.Min(health, maxHealth);
-                Debug.Log("夏のデバフが適用されました: 体力が減少");
                 break;
             case GameManager.Season.Autumn:
                 maxHealth += 15;
                 health = Mathf.Min(health + 15, maxHealth);
                 attackDamage = Mathf.RoundToInt(originalAttackDamage * 1.2f);
-                Debug.Log("秋のバフが適用されました: 体力と攻撃力が上昇");
                 break;
             case GameManager.Season.Winter:
                 maxHealth -= 10;
                 health = Mathf.Min(health, maxHealth);
                 attackDamage = Mathf.RoundToInt(originalAttackDamage * 0.9f);
-                Debug.Log("冬のデバフが適用されました: 体力と攻撃力が減少");
                 break;
         }
 
         seasonEffectApplied = true;
     }
 
-    // シーズンの効果をリセットするメソッド
     public void ResetSeasonEffect()
     {
         maxHealth = 20;
         health = Mathf.Min(health, maxHealth);
         attackDamage = originalAttackDamage;
         seasonEffectApplied = false;
-        Debug.Log("シーズン効果がリセットされました。");
+    }
+
+    void OnDrawGizmosSelected()
+    {
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(transform.position, detectionRadius);
     }
 }
