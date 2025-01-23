@@ -1,5 +1,5 @@
 using UnityEngine;
-using System.Collections;
+using UnityEngine.UI;
 
 public class Kobanuzame : MonoBehaviour, IDamageable, ISeasonEffect, IUpgradable
 {
@@ -7,25 +7,16 @@ public class Kobanuzame : MonoBehaviour, IDamageable, ISeasonEffect, IUpgradable
     public int health = 20;
     public int maxHealth = 20;
     private bool isBuffApplied = false;
-    private bool maxHealthBuffApplied = false;
     public bool isBuffActive = false; // バフが有効かどうかのフラグ
     private int originalAttackDamage = 5;
     public int attackDamage = 5;
     public float buffMultiplier = 1.5f; // 攻撃バフの倍率
 
-    // Kobanuzameの攻撃力と攻撃関連の設定
+    // 攻撃関連の設定
     public float detectionRadius = 10f;     // 敵を検知する範囲
     public float attackCooldown = 1.0f;     // 攻撃のクールダウン時間
-
     private Transform target;               // 攻撃対象の敵
     private float lastAttackTime;           // 最後に攻撃した時間
-
-    // **体当たり処理関連**
-    [Header("体当たり設定")]
-    public float dashDistance = 3.0f;       // 体当たりの前進距離
-    public float dashDuration = 0.2f;       // 前進にかかる時間
-    public float returnDuration = 0.2f;     // 後退にかかる時間
-    private bool isDashing = false;         // 現在体当たり中かどうか
 
     // **攻撃エフェクト＆サウンド設定**
     [Header("攻撃エフェクト設定")]
@@ -34,7 +25,14 @@ public class Kobanuzame : MonoBehaviour, IDamageable, ISeasonEffect, IUpgradable
     public AudioClip attackSound;           // 攻撃時の効果音
     private AudioSource audioSource;        // 効果音を再生するためのAudioSource
 
-    // GameManagerの参照をインスペクターから設定できるようにする
+    // **ヘルスバー関連**
+    [Header("ヘルスバー設定")]
+    public GameObject healthBarPrefab;      // ヘルスバーのプレハブ
+    private GameObject healthBarInstance;   // 実際に生成されたヘルスバー
+    private Slider healthSlider;            // ヘルスバーのスライダーコンポーネント
+    private Transform cameraTransform;      // メインカメラのTransform
+
+    // GameManagerの参照
     [SerializeField]
     private GameManager gm;
 
@@ -92,6 +90,27 @@ public class Kobanuzame : MonoBehaviour, IDamageable, ISeasonEffect, IUpgradable
         // **AudioSourceの初期化**
         audioSource = gameObject.AddComponent<AudioSource>();
         audioSource.playOnAwake = false;
+
+        // **カメラの参照を取得**
+        cameraTransform = Camera.main.transform;
+
+        // **ヘルスバーの初期化**
+        if (healthBarPrefab != null)
+        {
+            healthBarInstance = Instantiate(healthBarPrefab, transform);
+            healthBarInstance.transform.localPosition = new Vector3(0, 1.5f, 0); // 頭上に配置
+            healthSlider = healthBarInstance.GetComponentInChildren<Slider>();
+
+            if (healthSlider != null)
+            {
+                healthSlider.maxValue = maxHealth;
+                healthSlider.value = health;
+            }
+        }
+        else
+        {
+            Debug.LogError("ヘルスバープレハブが設定されていません！");
+        }
     }
 
     void Update()
@@ -101,6 +120,30 @@ public class Kobanuzame : MonoBehaviour, IDamageable, ISeasonEffect, IUpgradable
         ApplyBuffFromManuta();
         ApplyBuffFromIruka();
         AttackOn();
+        UpdateHealthBar();   // ヘルスバーの更新
+    }
+
+    private void UpdateHealthBar()
+    {
+        if (healthSlider == null || healthBarInstance == null) return;
+
+        // ヘルスバーのスライダー値を更新
+        healthSlider.value = health;
+
+        // ヘルスバーをカメラに向けて回転
+        healthBarInstance.transform.rotation = Quaternion.LookRotation(healthBarInstance.transform.position - cameraTransform.position);
+
+        // ヘルスバーの表示/非表示
+        healthBarInstance.SetActive(health < maxHealth);
+    }
+
+    private void OnDestroy()
+    {
+        // ヘルスバーのインスタンスを削除
+        if (healthBarInstance != null)
+        {
+            Destroy(healthBarInstance);
+        }
     }
 
     private void OnMouseDown()
@@ -157,55 +200,6 @@ public class Kobanuzame : MonoBehaviour, IDamageable, ISeasonEffect, IUpgradable
         }
     }
 
-    public void PerformDashAttack()
-    {
-        if (Time.time < lastAttackTime + attackCooldown) return;
-
-        StartCoroutine(DashAttack());
-    }
-
-    private IEnumerator DashAttack()
-    {
-        if (isDashing) yield break;
-
-        isDashing = true;
-
-        // 前進
-        Vector3 startPosition = transform.position;
-        Vector3 dashPosition = transform.position + transform.forward * dashDistance;
-        float elapsedTime = 0f;
-
-        while (elapsedTime < dashDuration)
-        {
-            transform.position = Vector3.Lerp(startPosition, dashPosition, elapsedTime / dashDuration);
-            elapsedTime += Time.deltaTime;
-            yield return null;
-        }
-
-        // **攻撃エフェクトとサウンドの再生**
-        PlayAttackEffect();
-
-        // 攻撃判定
-        if (target != null && Vector3.Distance(transform.position, target.position) <= detectionRadius)
-        {
-            IDamageable damageable = target.GetComponent<IDamageable>();
-            damageable?.TakeDamage(attackDamage);
-            Debug.Log($"{target.name} に {attackDamage} のダメージを与えました。");
-        }
-
-        // 後退
-        elapsedTime = 0f;
-        while (elapsedTime < returnDuration)
-        {
-            transform.position = Vector3.Lerp(dashPosition, startPosition, elapsedTime / returnDuration);
-            elapsedTime += Time.deltaTime;
-            yield return null;
-        }
-
-        isDashing = false;
-        lastAttackTime = Time.time;
-    }
-
     public void AttackOn()
     {
         if (target == null)
@@ -214,7 +208,8 @@ public class Kobanuzame : MonoBehaviour, IDamageable, ISeasonEffect, IUpgradable
         }
         else if (Vector3.Distance(transform.position, target.position) <= detectionRadius && Time.time > lastAttackTime + attackCooldown)
         {
-            PerformDashAttack(); // **体当たり攻撃を実行**
+            AttackTarget();
+            lastAttackTime = Time.time;
         }
     }
 
@@ -233,24 +228,25 @@ public class Kobanuzame : MonoBehaviour, IDamageable, ISeasonEffect, IUpgradable
         }
     }
 
+    void AttackTarget()
+    {
+        if (target != null)
+        {
+            IDamageable damageable = target.GetComponent<IDamageable>();
+            damageable?.TakeDamage(attackDamage);
+            Debug.Log($"{target.name} に {attackDamage} のダメージを与えました。");
+        }
+    }
+
     public void TakeDamage(int damageAmount)
     {
-        if (!isBuffApplied)
-        {
-            health -= damageAmount;
-        }
-        else
-        {
-            int reducedDamage = Mathf.RoundToInt(damageAmount * 0.25f); // ダメージを75%軽減
-            health -= reducedDamage;
-            Debug.Log($"Manutaの共生効果によりダメージが軽減されました。受けたダメージ: {reducedDamage}");
-        }
-
+        health -= damageAmount;
         if (health <= 0) Die();
     }
 
     private void Die()
     {
+        Debug.Log($"{gameObject.name} が倒れました！");
         Destroy(gameObject);
     }
 
@@ -258,14 +254,11 @@ public class Kobanuzame : MonoBehaviour, IDamageable, ISeasonEffect, IUpgradable
     {
         Collider[] colliders = Physics.OverlapSphere(transform.position, detectionRadius);
         bool manutaNearby = false;
-        Debug.Log("近くにいるManutaを検知しています...");
         foreach (Collider collider in colliders)
         {
-            Manuta manuta = collider.GetComponent<Manuta>();
-            if (manuta != null && manuta.gameObject != gameObject)
+            if (collider.TryGetComponent(out Manuta manuta) && manuta.gameObject != gameObject)
             {
                 manutaNearby = true;
-                Debug.Log($"Manutaを検知しました: {manuta.name}");
                 break;
             }
         }
@@ -273,12 +266,12 @@ public class Kobanuzame : MonoBehaviour, IDamageable, ISeasonEffect, IUpgradable
         if (manutaNearby && !isBuffApplied)
         {
             attackCooldown *= 0.5f; // 攻撃頻度が上がる（クールダウン時間を半分にする）
-            isBuffApplied = true;  // バフが適用されたことを記録
+            isBuffApplied = true;
         }
         else if (!manutaNearby && isBuffApplied)
         {
             attackCooldown *= 2.0f; // 攻撃頻度を元に戻す
-            isBuffApplied = false; // バフを解除
+            isBuffApplied = false;
         }
     }
 
