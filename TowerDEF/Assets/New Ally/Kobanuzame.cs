@@ -20,33 +20,47 @@ public class Kobanuzame : MonoBehaviour, IDamageable, ISeasonEffect, IUpgradable
     private Transform target;               // 攻撃対象の敵
     private float lastAttackTime;           // 最後に攻撃した時間
 
+    // **体当たり処理関連**
+    [Header("体当たり設定")]
+    public float dashDistance = 3.0f;       // 体当たりの前進距離
+    public float dashDuration = 0.2f;       // 前進にかかる時間
+    public float returnDuration = 0.2f;     // 後退にかかる時間
+    private bool isDashing = false;         // 現在体当たり中かどうか
+
+    // **攻撃エフェクト＆サウンド設定**
+    [Header("攻撃エフェクト設定")]
+    public GameObject attackEffectPrefab;   // 攻撃エフェクトのプレハブ
+    public Transform effectSpawnPoint;      // エフェクトを生成する位置
+    public AudioClip attackSound;           // 攻撃時の効果音
+    private AudioSource audioSource;        // 効果音を再生するためのAudioSource
+
     // GameManagerの参照をインスペクターから設定できるようにする
     [SerializeField]
     private GameManager gm;
 
     private bool seasonEffectApplied = false;
 
-    public void OnApplicationQuit()　//追加
+    public void OnApplicationQuit()
     {
         SaveState();
     }
 
-    public void Upgrade(int additionalHp, int additionalDamage, int additionaRadius)//追加
+    public void Upgrade(int additionalHp, int additionalDamage, int additionaRadius)
     {
         health += additionalHp;
         attackDamage += additionalDamage;
         detectionRadius += additionaRadius;
-        Debug.Log(gameObject.name + " upgraded! HP: " + health + ", Damage: " + attackDamage + ", Damage: " + detectionRadius);
+        Debug.Log(gameObject.name + " upgraded! HP: " + health + ", Damage: " + attackDamage + ", Radius: " + detectionRadius);
     }
 
-    public void SaveState()//追加
+    public void SaveState()
     {
         PlayerPrefs.SetInt($"{gameObject.name}_HP", health);
         PlayerPrefs.SetInt($"{gameObject.name}_Damage", attackDamage);
         Debug.Log($"{gameObject.name} state saved!");
     }
 
-    public void LoadState()//追加
+    public void LoadState()
     {
         if (PlayerPrefs.HasKey($"{gameObject.name}_HP"))
         {
@@ -63,7 +77,7 @@ public class Kobanuzame : MonoBehaviour, IDamageable, ISeasonEffect, IUpgradable
 
     void Start()
     {
-        LoadState();//追加
+        LoadState();
 
         if (gm == null)
         {
@@ -74,6 +88,10 @@ public class Kobanuzame : MonoBehaviour, IDamageable, ISeasonEffect, IUpgradable
         {
             Debug.LogError("GameManagerの参照が見つかりません。GameManagerが正しく設定されているか確認してください。");
         }
+
+        // **AudioSourceの初期化**
+        audioSource = gameObject.AddComponent<AudioSource>();
+        audioSource.playOnAwake = false;
     }
 
     void Update()
@@ -117,6 +135,77 @@ public class Kobanuzame : MonoBehaviour, IDamageable, ISeasonEffect, IUpgradable
         }
     }
 
+    public void PlayAttackEffect()
+    {
+        // **エフェクトの生成**
+        if (attackEffectPrefab != null && effectSpawnPoint != null)
+        {
+            GameObject effect = Instantiate(attackEffectPrefab, effectSpawnPoint.position, effectSpawnPoint.rotation);
+            Destroy(effect, 2.0f);
+            Debug.Log("攻撃エフェクトを生成しました！");
+        }
+
+        // **効果音の再生**
+        if (attackSound != null && audioSource != null)
+        {
+            audioSource.clip = attackSound;
+            audioSource.Play();
+        }
+        else
+        {
+            Debug.LogWarning("攻撃エフェクトまたはサウンドが設定されていません！");
+        }
+    }
+
+    public void PerformDashAttack()
+    {
+        if (Time.time < lastAttackTime + attackCooldown) return;
+
+        StartCoroutine(DashAttack());
+    }
+
+    private IEnumerator DashAttack()
+    {
+        if (isDashing) yield break;
+
+        isDashing = true;
+
+        // 前進
+        Vector3 startPosition = transform.position;
+        Vector3 dashPosition = transform.position + transform.forward * dashDistance;
+        float elapsedTime = 0f;
+
+        while (elapsedTime < dashDuration)
+        {
+            transform.position = Vector3.Lerp(startPosition, dashPosition, elapsedTime / dashDuration);
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+
+        // **攻撃エフェクトとサウンドの再生**
+        PlayAttackEffect();
+
+        // 攻撃判定
+        if (target != null && Vector3.Distance(transform.position, target.position) <= detectionRadius)
+        {
+            IDamageable damageable = target.GetComponent<IDamageable>();
+            damageable?.TakeDamage(attackDamage);
+            Debug.Log($"{target.name} に {attackDamage} のダメージを与えました。");
+        }
+
+        // 後退
+        elapsedTime = 0f;
+        while (elapsedTime < returnDuration)
+        {
+            transform.position = Vector3.Lerp(dashPosition, startPosition, elapsedTime / returnDuration);
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+
+        isDashing = false;
+        lastAttackTime = Time.time;
+    }
+
     public void AttackOn()
     {
         if (target == null)
@@ -125,8 +214,7 @@ public class Kobanuzame : MonoBehaviour, IDamageable, ISeasonEffect, IUpgradable
         }
         else if (Vector3.Distance(transform.position, target.position) <= detectionRadius && Time.time > lastAttackTime + attackCooldown)
         {
-            AttackTarget();
-            lastAttackTime = Time.time;
+            PerformDashAttack(); // **体当たり攻撃を実行**
         }
     }
 
@@ -142,16 +230,6 @@ public class Kobanuzame : MonoBehaviour, IDamageable, ISeasonEffect, IUpgradable
                 Debug.Log($"敵を検知しました: {target.name}");
                 break;
             }
-        }
-    }
-
-    void AttackTarget()
-    {
-        if (target != null)
-        {
-            IDamageable damageable = target.GetComponent<IDamageable>();
-            damageable?.TakeDamage(attackDamage);
-            Debug.Log($"{target.name} に {attackDamage} のダメージを与えました。");
         }
     }
 
@@ -237,7 +315,6 @@ public class Kobanuzame : MonoBehaviour, IDamageable, ISeasonEffect, IUpgradable
         Gizmos.DrawWireSphere(transform.position, detectionRadius);
     }
 
-    // シーズンの効果を適用するメソッド
     public void ApplySeasonEffect(GameManager.Season currentSeason)
     {
         if (seasonEffectApplied) return;
@@ -272,7 +349,6 @@ public class Kobanuzame : MonoBehaviour, IDamageable, ISeasonEffect, IUpgradable
         seasonEffectApplied = true;
     }
 
-    // シーズンの効果をリセットするメソッド
     public void ResetSeasonEffect()
     {
         maxHealth = 20;
