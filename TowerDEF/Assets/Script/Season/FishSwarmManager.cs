@@ -18,44 +18,42 @@ public class FishSwarmManager : MonoBehaviour
     [Header("Game State Settings")]
     public string currentSeason = "Autumn"; // 現在の季節
     public int currentWave; // 現在のウェーブ番号
-    public int[] waveNumbers = { 5, 9, 13, 18, 22, 26, 31, 35, 39, 44, 48, 52 }; // 魚群を発生させるウェーブ番号
-
-    private bool hasSwarmSpawnedThisWave = false; // このウェーブで魚群が発生したか
+    public List<int> swarmTriggerWaves = new List<int> { 5, 9, 13, 18, 22, 26, 31, 35, 39, 44, 48, 52 };
 
     private void Update()
     {
-        // 季節が秋で指定ウェーブなら魚群を発生させる
-        if (currentSeason == "Autumn" && ShouldSpawnSwarm())
+        Debug.Log($"Current Season: {currentSeason}, Current Wave: {currentWave}");
+
+        // 季節が秋で指定されたウェーブの場合に魚群を発生
+        if (currentSeason == "Autumn" && swarmTriggerWaves.Contains(currentWave) && !IsSwarmActive())
         {
+            Debug.Log("Spawning Fish Swarm!");
             StartCoroutine(SpawnFishSwarm());
-            hasSwarmSpawnedThisWave = true; // このウェーブでは魚群を発生させた
         }
     }
 
-    private bool ShouldSpawnSwarm()
+    private bool IsSwarmActive()
     {
-        // 指定されたウェーブ番号で魚群がまだ発生していない場合にtrueを返す
-        foreach (int wave in waveNumbers)
-        {
-            if (wave == currentWave && !hasSwarmSpawnedThisWave)
-            {
-                return true;
-            }
-        }
-        return false;
+        // 魚群が既にアクティブかどうかを確認
+        return GameObject.FindGameObjectWithTag("FishSwarm") != null;
     }
 
     private IEnumerator SpawnFishSwarm()
     {
         // ランダムなラインを選択
+        if (lines.Count == 0)
+        {
+            Debug.LogError("Lines list is empty! Please assign lines.");
+            yield break;
+        }
+
         Transform selectedLine = lines[Random.Range(0, lines.Count)];
+        Debug.Log($"Selected Line: {selectedLine.name}");
 
         // 魚群オブジェクトを生成
         GameObject fishSwarm = new GameObject("FishSwarm");
         fishSwarm.tag = "FishSwarm";
         fishSwarm.transform.position = selectedLine.position;
-
-        // プレハブがラインの進行方向を向くように回転
         fishSwarm.transform.rotation = Quaternion.LookRotation(selectedLine.forward);
 
         // 魚を生成して配置
@@ -81,24 +79,5 @@ public class FishSwarmManager : MonoBehaviour
 
         // 一定時間後に魚群を削除
         Destroy(fishSwarm);
-        hasSwarmSpawnedThisWave = false; // 次のウェーブで再度魚群を発生可能にする
-    }
-
-    private void ApplyDamage(Vector3 swarmPosition)
-    {
-        // 魚群の周囲にある対象を検出
-        Collider[] colliders = Physics.OverlapSphere(swarmPosition, damageRadius);
-        foreach (Collider collider in colliders)
-        {
-            if (collider.CompareTag("Ally") || collider.CompareTag("Enemy"))
-            {
-                IDamageable damageable = collider.GetComponent<IDamageable>();
-                if (damageable != null)
-                {
-                    // フレームレートに依存しないダメージを与える
-                    damageable.TakeDamage(Mathf.CeilToInt(damagePerSecond * Time.deltaTime));
-                }
-            }
-        }
     }
 }
