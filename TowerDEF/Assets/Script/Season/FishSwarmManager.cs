@@ -16,9 +16,9 @@ public class FishSwarmManager : MonoBehaviour
     public float damageRadius = 2f; // ダメージ範囲
 
     [Header("Game State Settings")]
-    public string currentSeason = "Autumn"; // 現在の季節
-    public int currentWave; // 現在のウェーブ番号
-    public List<int> swarmTriggerWaves = new List<int> { 5, 9, 13, 18, 22, 26, 31, 35, 39, 44, 48, 52 };
+    public string currentSeason = "Spring"; // ゲーム開始時は春
+    public int currentWave = 1; // 初期ウェーブは1
+    public List<int> swarmTriggerWaves = new List<int> { 31, 35, 39 }; // 魚群が発生するウェーブ
 
     private void Update()
     {
