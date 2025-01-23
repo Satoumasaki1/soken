@@ -31,6 +31,8 @@ public class Haze : MonoBehaviour, IDamageable, ISeasonEffect, IUpgradable
     [Header("攻撃エフェクト設定")]
     public GameObject attackEffectPrefab; // エフェクトのプレハブ (damage ef)
     public Transform effectSpawnPoint;   // エフェクトを生成する位置
+    public AudioClip attackSound;           // 効果音のAudioClip
+    private AudioSource audioSource;        // 効果音を再生するAudioSource
 
     // **新規追加: 体当たりの動きを制御するためのフィールド**
     [Header("体当たり設定")]
@@ -120,6 +122,9 @@ public class Haze : MonoBehaviour, IDamageable, ISeasonEffect, IUpgradable
         {
             Debug.LogError("HealthBarPrefabが設定されていません！");
         }
+
+        audioSource = gameObject.AddComponent<AudioSource>(); // AudioSourceを追加
+        audioSource.playOnAwake = false; // 自動再生を無効化
     }
 
     void Update()
@@ -203,6 +208,7 @@ public class Haze : MonoBehaviour, IDamageable, ISeasonEffect, IUpgradable
         }
         else if (Vector3.Distance(transform.position, target.position) <= detectionRadius && Time.time > lastAttackTime + attackCooldown)
         {
+            PlayAttackEffect(); // 攻撃エフェクトと効果音の再生
             AttackTarget();
             lastAttackTime = Time.time;
         }
@@ -284,6 +290,22 @@ public class Haze : MonoBehaviour, IDamageable, ISeasonEffect, IUpgradable
             GameObject effect = Instantiate(attackEffectPrefab, effectSpawnPoint.position, effectSpawnPoint.rotation);
             Destroy(effect, 2.0f);
         }
+        else
+        {
+            Debug.LogWarning("攻撃エフェクトのプレハブまたは生成位置が設定されていません！");
+        }
+        // **効果音の再生**
+        if (attackSound != null && audioSource != null)
+        {
+            audioSource.clip = attackSound; // 効果音を設定
+            audioSource.Play(); // 効果音を再生
+            Debug.Log("narase!!!!!!!!!");
+        }
+        else
+        {
+            Debug.LogWarning("攻撃効果音が設定されていません！");
+        }
+
     }
 
     public void TakeDamage(int damageAmount)

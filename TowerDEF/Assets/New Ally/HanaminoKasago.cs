@@ -41,6 +41,9 @@ public class HanaminoKasago : MonoBehaviour, IDamageable, ISeasonEffect, IUpgrad
     [Header("攻撃エフェクト設定")]
     public GameObject attackEffectPrefab;   // 攻撃エフェクトのプレハブ
     public Transform effectSpawnPoint;      // エフェクトを生成する位置
+    public AudioClip attackSound;           // 効果音のAudioClip
+    private AudioSource audioSource;        // 効果音を再生するAudioSource
+
 
     public void OnApplicationQuit()
     {
@@ -110,6 +113,10 @@ public class HanaminoKasago : MonoBehaviour, IDamageable, ISeasonEffect, IUpgrad
         {
             Debug.LogError("HealthBarPrefabが設定されていません！");
         }
+
+        // **AudioSourceの初期化**
+        audioSource = gameObject.AddComponent<AudioSource>(); // AudioSourceを追加
+        audioSource.playOnAwake = false; // 自動再生を無効化
     }
 
     void Update()
@@ -244,6 +251,17 @@ public class HanaminoKasago : MonoBehaviour, IDamageable, ISeasonEffect, IUpgrad
         {
             Debug.LogWarning("攻撃エフェクトのプレハブまたは生成位置が設定されていません！");
         }
+
+        // **効果音の再生**
+        if (attackSound != null && audioSource != null)
+        {
+            audioSource.clip = attackSound; // 効果音を設定
+            audioSource.Play(); // 効果音を再生
+        }
+        else
+        {
+            Debug.LogWarning("攻撃効果音が設定されていません！");
+        }
     }
 
     public void TakeDamage(int damageAmount)
@@ -277,7 +295,6 @@ public class HanaminoKasago : MonoBehaviour, IDamageable, ISeasonEffect, IUpgrad
             elapsedTime += Time.deltaTime;
             yield return null;
         }
-
 
         // 後退
         elapsedTime = 0f;
