@@ -16,13 +16,15 @@ public class FishSwarmManager : MonoBehaviour
     public float damageRadius = 2f; // ダメージ範囲
 
     [Header("Game State Settings")]
-    public bool isWaveActive; // 戦闘WAVEがアクティブかどうか
     public string currentSeason = "Autumn"; // 現在の季節
+    public int currentWave; // 現在のウェーブ番号
+
+    private HashSet<int> swarmWaves = new HashSet<int> { 5, 9, 13, 18, 22, 26, 31, 35, 39, 44, 48, 52 }; // 魚群を発生させるウェーブ
 
     private void Update()
     {
-        // 季節が秋で戦闘WAVEがアクティブな場合に魚群を発生させる
-        if (currentSeason == "Autumn" && isWaveActive && !IsSwarmActive())
+        // 季節が秋で指定されたウェーブがアクティブな場合に魚群を発生させる
+        if (currentSeason == "Autumn" && swarmWaves.Contains(currentWave) && !IsSwarmActive())
         {
             StartCoroutine(SpawnFishSwarm());
         }
@@ -79,7 +81,6 @@ public class FishSwarmManager : MonoBehaviour
         // 一定時間後に魚群を削除
         Destroy(fishSwarm);
     }
-
 
     private void ApplyDamage(Vector3 swarmPosition)
     {
