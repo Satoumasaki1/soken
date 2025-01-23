@@ -38,12 +38,12 @@ public class HanaminoKasago : MonoBehaviour, IDamageable, ISeasonEffect, IUpgrad
     private GameObject healthBarInstance;   // 実際に生成された体力バー
     private Slider healthSlider;            // 体力バーのスライダーコンポーネント
 
+    // **攻撃エフェクト＆効果音関連**
     [Header("攻撃エフェクト設定")]
     public GameObject attackEffectPrefab;   // 攻撃エフェクトのプレハブ
     public Transform effectSpawnPoint;      // エフェクトを生成する位置
     public AudioClip attackSound;           // 効果音のAudioClip
     private AudioSource audioSource;        // 効果音を再生するAudioSource
-
 
     public void OnApplicationQuit()
     {
@@ -192,6 +192,74 @@ public class HanaminoKasago : MonoBehaviour, IDamageable, ISeasonEffect, IUpgrad
         }
     }
 
+    public void PlayAttackEffect()
+    {
+        // **エフェクトの生成**
+        if (attackEffectPrefab != null && effectSpawnPoint != null)
+        {
+            GameObject effect = Instantiate(attackEffectPrefab, effectSpawnPoint.position, effectSpawnPoint.rotation);
+            Destroy(effect, 2.0f); // エフェクトを一定時間後に削除
+
+            Debug.Log("攻撃エフェクトを生成しました！");
+        }
+        else
+        {
+            Debug.LogWarning("攻撃エフェクトのプレハブまたは生成位置が設定されていません！");
+        }
+
+        // **効果音の再生**
+        if (attackSound != null && audioSource != null)
+        {
+            audioSource.clip = attackSound; // 効果音を設定
+            audioSource.Play(); // 効果音を再生
+        }
+        else
+        {
+            Debug.LogWarning("攻撃効果音が設定されていません！");
+        }
+    }
+
+    public void PerformDashAttack()
+    {
+        if (!isDashing)
+        {
+            StartCoroutine(PerformDash());
+        }
+    }
+
+    private IEnumerator PerformDash()
+    {
+        if (isDashing) yield break;
+
+        isDashing = true;
+
+        // 前進
+        Vector3 startPosition = transform.position;
+        Vector3 dashPosition = transform.position + transform.forward * dashDistance;
+        float elapsedTime = 0f;
+
+        while (elapsedTime < dashDuration)
+        {
+            transform.position = Vector3.Lerp(startPosition, dashPosition, elapsedTime / dashDuration);
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+
+        // **攻撃エフェクトと効果音を再生**
+        PlayAttackEffect();
+
+        // 後退
+        elapsedTime = 0f;
+        while (elapsedTime < returnDuration)
+        {
+            transform.position = Vector3.Lerp(dashPosition, startPosition, elapsedTime / returnDuration);
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+
+        isDashing = false;
+    }
+
     public void ApplyParalyticPoisonEffect()
     {
         if (Time.time > lastEffectTime + effectInterval)
@@ -235,35 +303,6 @@ public class HanaminoKasago : MonoBehaviour, IDamageable, ISeasonEffect, IUpgrad
         }
     }
 
-    public void PlayAttackEffect()
-    {
-        if (attackEffectPrefab != null && effectSpawnPoint != null)
-        {
-            // **エフェクトを生成**
-            GameObject effect = Instantiate(attackEffectPrefab, effectSpawnPoint.position, effectSpawnPoint.rotation);
-
-            // **一定時間後にエフェクトを削除**
-            Destroy(effect, 2.0f);
-
-            Debug.Log("攻撃エフェクトを生成しました！");
-        }
-        else
-        {
-            Debug.LogWarning("攻撃エフェクトのプレハブまたは生成位置が設定されていません！");
-        }
-
-        // **効果音の再生**
-        if (attackSound != null && audioSource != null)
-        {
-            audioSource.clip = attackSound; // 効果音を設定
-            audioSource.Play(); // 効果音を再生
-        }
-        else
-        {
-            Debug.LogWarning("攻撃効果音が設定されていません！");
-        }
-    }
-
     public void TakeDamage(int damageAmount)
     {
         health -= damageAmount;
@@ -276,36 +315,6 @@ public class HanaminoKasago : MonoBehaviour, IDamageable, ISeasonEffect, IUpgrad
     private void Die()
     {
         Destroy(gameObject);
-    }
-
-    private IEnumerator PerformDash()
-    {
-        if (isDashing) yield break;
-
-        isDashing = true;
-
-        // 前進
-        Vector3 startPosition = transform.position;
-        Vector3 dashPosition = transform.position + transform.forward * dashDistance;
-        float elapsedTime = 0f;
-
-        while (elapsedTime < dashDuration)
-        {
-            transform.position = Vector3.Lerp(startPosition, dashPosition, elapsedTime / dashDuration);
-            elapsedTime += Time.deltaTime;
-            yield return null;
-        }
-
-        // 後退
-        elapsedTime = 0f;
-        while (elapsedTime < returnDuration)
-        {
-            transform.position = Vector3.Lerp(dashPosition, startPosition, elapsedTime / returnDuration);
-            elapsedTime += Time.deltaTime;
-            yield return null;
-        }
-
-        isDashing = false;
     }
 
     void OnDrawGizmosSelected()

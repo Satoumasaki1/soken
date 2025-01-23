@@ -6,7 +6,6 @@ public class Kanisan : MonoBehaviour, IDamageable, ISeasonEffect, IUpgradable
 {
     // Kanisanの基本プロパティ
     public int health = 10;
-    public int maxHealth = 10; //削除
     private bool maxHealthBuffApplied = false;
     public bool isBuffActive = false; // バフが有効かどうかのフラグ
     private int originalAttackDamage = 3;
@@ -17,7 +16,6 @@ public class Kanisan : MonoBehaviour, IDamageable, ISeasonEffect, IUpgradable
     public float detectionRadius = 10f;     // 敵を検知する範囲
     public float attackRange = 5f;          // 攻撃範囲
     public float attackCooldown = 1.5f;     // 攻撃のクールダウン時間
-
     private Transform target;               // 攻撃対象の敵
     private float lastAttackTime;           // 最後に攻撃した時間
 
@@ -32,27 +30,34 @@ public class Kanisan : MonoBehaviour, IDamageable, ISeasonEffect, IUpgradable
 
     private bool seasonEffectApplied = false;
 
-    public void OnApplicationQuit()　//追加
+    // **攻撃エフェクト＆効果音関連**
+    [Header("攻撃エフェクト設定")]
+    public GameObject attackEffectPrefab;   // 攻撃エフェクトのプレハブ
+    public Transform effectSpawnPoint;      // エフェクトを生成する位置
+    public AudioClip attackSound;           // 効果音のAudioClip
+    private AudioSource audioSource;        // 効果音を再生するAudioSource
+
+    public void OnApplicationQuit()
     {
         SaveState();
     }
 
-    public void Upgrade(int additionalHp, int additionalDamage, int additionaRadius)//追加
+    public void Upgrade(int additionalHp, int additionalDamage, int additionaRadius)
     {
         health += additionalHp;
         attackDamage += additionalDamage;
         detectionRadius += additionaRadius;
-        Debug.Log(gameObject.name + " upgraded! HP: " + health + ", Damage: " + attackDamage + ", Damage: " + detectionRadius);
+        Debug.Log(gameObject.name + " upgraded! HP: " + health + ", Damage: " + attackDamage + ", Radius: " + detectionRadius);
     }
 
-    public void SaveState()//追加
+    public void SaveState()
     {
         PlayerPrefs.SetInt($"{gameObject.name}_HP", health);
         PlayerPrefs.SetInt($"{gameObject.name}_Damage", attackDamage);
         Debug.Log($"{gameObject.name} state saved!");
     }
 
-    public void LoadState()//追加
+    public void LoadState()
     {
         if (PlayerPrefs.HasKey($"{gameObject.name}_HP"))
         {
@@ -69,8 +74,7 @@ public class Kanisan : MonoBehaviour, IDamageable, ISeasonEffect, IUpgradable
 
     void Start()
     {
-
-        LoadState();//追加
+        LoadState();
 
         // GameManagerの参照を取得
         if (gm == null)
@@ -83,9 +87,6 @@ public class Kanisan : MonoBehaviour, IDamageable, ISeasonEffect, IUpgradable
             Debug.LogError("GameManagerの参照が見つかりません。GameManagerが正しく設定されているか確認してください。");
         }
 
-        // 現在の体力を初期化
-        health = maxHealth;
-
         // 体力バーを生成し、キャラクターの子オブジェクトとして配置
         if (healthBarPrefab != null)
         {
@@ -95,7 +96,7 @@ public class Kanisan : MonoBehaviour, IDamageable, ISeasonEffect, IUpgradable
 
             if (healthSlider != null)
             {
-                healthSlider.maxValue = 1;
+                healthSlider.maxValue = 10;
                 healthSlider.value = health;
             }
         }
@@ -103,6 +104,10 @@ public class Kanisan : MonoBehaviour, IDamageable, ISeasonEffect, IUpgradable
         {
             Debug.LogError("HealthBarPrefabが設定されていません！");
         }
+
+        // **AudioSourceの初期化**
+        audioSource = gameObject.AddComponent<AudioSource>(); // AudioSourceを追加
+        audioSource.playOnAwake = false; // 自動再生を無効化
     }
 
     void Update()
@@ -128,13 +133,17 @@ public class Kanisan : MonoBehaviour, IDamageable, ISeasonEffect, IUpgradable
     {
         if (healthSlider == null || healthBarInstance == null) return;
 
-        float healthPercentage = (float)health / maxHealth;
+        float healthPercentage = (float)health / 10; // 健康状態を 0～1 に正規化
         healthSlider.value = healthPercentage;
 
         // 体力がマックスの場合は非表示
-        healthBarInstance.SetActive(health < maxHealth);
+        healthBarInstance.SetActive(health < 10);
 
-        
+        // 体力バーの回転をカメラに合わせる
+        if (Camera.main != null)
+        {
+            healthBarInstance.transform.rotation = Quaternion.LookRotation(Camera.main.transform.forward);
+        }
     }
 
     private void OnDestroy()
@@ -164,10 +173,10 @@ public class Kanisan : MonoBehaviour, IDamageable, ISeasonEffect, IUpgradable
             {
                 if (gm.inventory[selectedFeed] > 0)
                 {
-                    if (health < maxHealth)
+                    if (health < 10)
                     {
                         health += 2; // 回復量
-                        health = Mathf.Min(health, maxHealth);
+                        health = Mathf.Min(health, 10);
                         gm.inventory[selectedFeed]--;
                         gm.UpdateResourceUI();
                         // 体力バーを更新
@@ -195,6 +204,75 @@ public class Kanisan : MonoBehaviour, IDamageable, ISeasonEffect, IUpgradable
         }
     }
 
+    public void PlayAttackEffect()
+    {
+        // **エフェクトの生成**
+        if (attackEffectPrefab != null && effectSpawnPoint != null)
+        {
+            GameObject effect = Instantiate(attackEffectPrefab, effectSpawnPoint.position, effectSpawnPoint.rotation);
+            Destroy(effect, 2.0f); // エフェクトを一定時間後に削除
+
+            Debug.Log("攻撃エフェクトを生成しました！");
+        }
+        else
+        {
+            Debug.LogWarning("攻撃エフェクトのプレハブまたは生成位置が設定されていません！");
+        }
+
+        // **効果音の再生**
+        if (attackSound != null && audioSource != null)
+        {
+            audioSource.clip = attackSound; // 効果音を設定
+            audioSource.Play(); // 効果音を再生
+        }
+        else
+        {
+            Debug.LogWarning("攻撃効果音が設定されていません！");
+        }
+    }
+
+    public void PerformSmashAttack()
+    {
+        if (Time.time < lastAttackTime + attackCooldown) return;
+
+        StartCoroutine(SmashAttack());
+    }
+
+    private IEnumerator SmashAttack()
+    {
+        // 上昇モーション
+        Vector3 originalPosition = transform.position;
+        Vector3 raisedPosition = originalPosition + Vector3.up * 2f;
+        float elapsedTime = 0f;
+
+        while (elapsedTime < 0.2f)
+        {
+            transform.position = Vector3.Lerp(originalPosition, raisedPosition, elapsedTime / 0.2f);
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+
+        // **攻撃エフェクトと効果音を再生**
+        PlayAttackEffect();
+
+        // たたきつけモーション
+        elapsedTime = 0f;
+        while (elapsedTime < 0.1f)
+        {
+            transform.position = Vector3.Lerp(raisedPosition, originalPosition, elapsedTime / 0.1f);
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+
+        // 攻撃を適用
+        if (target != null && Vector3.Distance(transform.position, target.position) <= attackRange)
+        {
+            IDamageable damageable = target.GetComponent<IDamageable>();
+            damageable?.TakeDamage(attackDamage);
+        }
+
+        lastAttackTime = Time.time;
+    }
 
     public void AttackOn()
     {
@@ -202,19 +280,9 @@ public class Kanisan : MonoBehaviour, IDamageable, ISeasonEffect, IUpgradable
         {
             DetectEnemy();
         }
-        else
+        else if (Vector3.Distance(transform.position, target.position) <= attackRange && Time.time > lastAttackTime + attackCooldown)
         {
-            float distanceToTarget = Vector3.Distance(transform.position, target.position);
-
-            if (distanceToTarget <= attackRange && Time.time > lastAttackTime + attackCooldown)
-            {
-                AttackTarget();
-                lastAttackTime = Time.time;
-            }
-            else if (distanceToTarget > detectionRadius)
-            {
-                target = null;
-            }
+            PerformSmashAttack(); // **たたきつけ攻撃を実行**
         }
     }
 
@@ -231,21 +299,11 @@ public class Kanisan : MonoBehaviour, IDamageable, ISeasonEffect, IUpgradable
         }
     }
 
-    private void AttackTarget()
-    {
-        if (target != null)
-        {
-            IDamageable damageable = target.GetComponent<IDamageable>();
-            if (damageable != null)
-            {
-                damageable.TakeDamage(attackDamage);
-            }
-        }
-    }
-
     public void TakeDamage(int damageAmount)
     {
         health -= damageAmount;
+        UpdateHealthBar();
+
         if (health <= 0)
         {
             Die();
@@ -254,6 +312,7 @@ public class Kanisan : MonoBehaviour, IDamageable, ISeasonEffect, IUpgradable
 
     private void Die()
     {
+        Debug.Log($"{gameObject.name} が倒れました！");
         Destroy(gameObject);
     }
 
@@ -274,8 +333,7 @@ public class Kanisan : MonoBehaviour, IDamageable, ISeasonEffect, IUpgradable
         }
 
         attackDamage += nearbyKanisanCount * 5;
-        maxHealth += nearbyKanisanCount * 5;
-        health = Mathf.Min(health + nearbyKanisanCount * 5, maxHealth);
+        health = Mathf.Min(health + nearbyKanisanCount * 5, 10);
 
         maxHealthBuffApplied = true;
     }
@@ -312,22 +370,18 @@ public class Kanisan : MonoBehaviour, IDamageable, ISeasonEffect, IUpgradable
         switch (currentSeason)
         {
             case GameManager.Season.Spring:
-                maxHealth += 10;
-                health = Mathf.Min(health + 10, maxHealth);
+                health = Mathf.Min(health + 10, 10);
                 attackDamage = Mathf.RoundToInt(attackDamage * 1.1f);
                 break;
             case GameManager.Season.Summer:
-                maxHealth -= 5;
-                health = Mathf.Min(health, maxHealth);
+                health = Mathf.Min(health, 10);
                 break;
             case GameManager.Season.Autumn:
-                maxHealth += 15;
-                health = Mathf.Min(health + 15, maxHealth);
+                health = Mathf.Min(health + 15, 10);
                 attackDamage = Mathf.RoundToInt(attackDamage * 1.2f);
                 break;
             case GameManager.Season.Winter:
-                maxHealth -= 10;
-                health = Mathf.Min(health, maxHealth);
+                health = Mathf.Min(health, 10);
                 attackDamage = Mathf.RoundToInt(attackDamage * 0.9f);
                 break;
         }
@@ -337,8 +391,7 @@ public class Kanisan : MonoBehaviour, IDamageable, ISeasonEffect, IUpgradable
 
     public void ResetSeasonEffect()
     {
-        maxHealth = 10;
-        health = Mathf.Min(health, maxHealth);
+        health = Mathf.Min(health, 10);
         attackDamage = originalAttackDamage;
         seasonEffectApplied = false;
     }
