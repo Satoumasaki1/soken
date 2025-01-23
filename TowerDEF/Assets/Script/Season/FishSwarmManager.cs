@@ -18,31 +18,37 @@ public class FishSwarmManager : MonoBehaviour
     [Header("Game State Settings")]
     public string currentSeason = "Autumn"; // 現在の季節
     public int currentWave; // 現在のウェーブ番号
+    public int[] waveNumbers = { 5, 9, 13, 18, 22, 26, 31, 35, 39, 44, 48, 52 }; // 魚群を発生させるウェーブ番号
 
-    private HashSet<int> swarmWaves = new HashSet<int> { 5, 9, 13, 18, 22, 26, 31, 35, 39, 44, 48, 52 }; // 魚群を発生させるウェーブ
+    private bool hasSwarmSpawnedThisWave = false; // このウェーブで魚群が発生したか
 
     private void Update()
     {
-        // 季節が秋で指定されたウェーブがアクティブな場合に魚群を発生させる
-        if (currentSeason == "Autumn" && swarmWaves.Contains(currentWave) && !IsSwarmActive())
+        // 季節が秋で指定ウェーブなら魚群を発生させる
+        if (currentSeason == "Autumn" && ShouldSpawnSwarm())
         {
             StartCoroutine(SpawnFishSwarm());
+            hasSwarmSpawnedThisWave = true; // このウェーブでは魚群を発生させた
         }
     }
 
-    private bool IsSwarmActive()
+    private bool ShouldSpawnSwarm()
     {
-        // 魚群が既にアクティブかどうかを確認
-        return GameObject.FindGameObjectWithTag("FishSwarm") != null;
+        // 指定されたウェーブ番号で魚群がまだ発生していない場合にtrueを返す
+        foreach (int wave in waveNumbers)
+        {
+            if (wave == currentWave && !hasSwarmSpawnedThisWave)
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     private IEnumerator SpawnFishSwarm()
     {
         // ランダムなラインを選択
         Transform selectedLine = lines[Random.Range(0, lines.Count)];
-
-        // デバッグ: ラインの進行方向を確認
-        Debug.Log("Selected Line Forward: " + selectedLine.forward);
 
         // 魚群オブジェクトを生成
         GameObject fishSwarm = new GameObject("FishSwarm");
@@ -51,8 +57,6 @@ public class FishSwarmManager : MonoBehaviour
 
         // プレハブがラインの進行方向を向くように回転
         fishSwarm.transform.rotation = Quaternion.LookRotation(selectedLine.forward);
-
-        Debug.Log("FishSwarm Rotation: " + fishSwarm.transform.rotation.eulerAngles);
 
         // 魚を生成して配置
         for (int i = 0; i < fishCount; i++)
@@ -72,14 +76,12 @@ public class FishSwarmManager : MonoBehaviour
         {
             fishSwarm.transform.position += selectedLine.forward * movementSpeed * Time.deltaTime;
             elapsedTime += Time.deltaTime;
-
-            // 移動中の進行方向確認
-            Debug.Log("FishSwarm Position: " + fishSwarm.transform.position);
             yield return null;
         }
 
         // 一定時間後に魚群を削除
         Destroy(fishSwarm);
+        hasSwarmSpawnedThisWave = false; // 次のウェーブで再度魚群を発生可能にする
     }
 
     private void ApplyDamage(Vector3 swarmPosition)
