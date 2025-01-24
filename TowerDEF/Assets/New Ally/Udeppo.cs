@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UI;
 
 public class Udeppo : MonoBehaviour, IDamageable, IUpgradable
 {
@@ -9,39 +10,59 @@ public class Udeppo : MonoBehaviour, IDamageable, IUpgradable
     public bool isBuffActive = false; // バフが有効かどうかのフラグ
     private int originalAttackDamage = 10; // 元の攻撃力
 
-    // Udeppoの攻撃力と攻撃関連の設定
+    // 攻撃関連の設定
     public int attackDamage = 10;
     public float detectionRadius = 20f;     // 敵を検知する範囲（射程が長い）
     public float attackCooldown = 3.0f;     // 攻撃のクールダウン時間（攻撃頻度は遅い）
 
-    private Transform target;               // 攻撃対象の敵
-    private float lastAttackTime;           // 最後に攻撃した時間
+    // **たたきつけ攻撃の動き関連**
+    public float slamDistance = 2.0f;      // たたきつけ攻撃で前進する距離
+    public float slamDuration = 0.3f;      // 前進にかかる時間
+    public float returnDuration = 0.3f;    // 後退にかかる時間
+    private bool isAttacking = false;      // 攻撃中かどうかを判定するフラグ
 
-    // GameManagerの参照をインスペクターから設定できるようにする
+    // **攻撃エフェクト＆サウンド設定**
+    [Header("攻撃エフェクト設定")]
+    public GameObject slamEffectPrefab;    // たたきつけ攻撃エフェクトのプレハブ
+    public Transform effectSpawnPoint;     // エフェクトを生成する位置
+    public AudioClip slamSound;            // たたきつけ攻撃時の効果音
+    private AudioSource audioSource;       // 効果音を再生するためのAudioSource
+
+    // **ヘルスバー関連**
+    [Header("ヘルスバー設定")]
+    public GameObject healthBarPrefab;     // ヘルスバーのプレハブ
+    private GameObject healthBarInstance;  // 実際に生成されたヘルスバー
+    private Slider healthSlider;           // ヘルスバーのスライダーコンポーネント
+    private Transform cameraTransform;     // メインカメラのTransform
+
+    // GameManagerの参照
     [SerializeField]
     private GameManager gm;
 
-    public void OnApplicationQuit()　//追加
+    private float lastAttackTime;          // 最後に攻撃した時間
+    private Transform target;              // 攻撃対象の敵
+
+    public void OnApplicationQuit()
     {
         SaveState();
     }
 
-    public void Upgrade(int additionalHp, int additionalDamage, int additionaRadius)//追加
+    public void Upgrade(int additionalHp, int additionalDamage, int additionaRadius)
     {
         health += additionalHp;
         attackDamage += additionalDamage;
         detectionRadius += additionaRadius;
-        Debug.Log(gameObject.name + " upgraded! HP: " + health + ", Damage: " + attackDamage + ", Damage: " + detectionRadius);
+        Debug.Log(gameObject.name + " upgraded! HP: " + health + ", Damage: " + attackDamage + ", Radius: " + detectionRadius);
     }
 
-    public void SaveState()//追加
+    public void SaveState()
     {
         PlayerPrefs.SetInt($"{gameObject.name}_HP", health);
         PlayerPrefs.SetInt($"{gameObject.name}_Damage", attackDamage);
         Debug.Log($"{gameObject.name} state saved!");
     }
 
-    public void LoadState()//追加
+    public void LoadState()
     {
         if (PlayerPrefs.HasKey($"{gameObject.name}_HP"))
         {
@@ -58,115 +79,148 @@ public class Udeppo : MonoBehaviour, IDamageable, IUpgradable
 
     void Start()
     {
-        LoadState();//追加
+        LoadState();
 
-        // GameManagerの参照がインスペクターで設定されていない場合、自動的に取得
+        // GameManagerの参照を取得
         if (gm == null)
         {
             gm = GameManager.Instance != null ? GameManager.Instance : GameObject.Find("GameManager").GetComponent<GameManager>();
         }
 
-        // GameManagerの参照が取得できなかった場合、エラーメッセージを表示
         if (gm == null)
         {
             Debug.LogError("GameManagerの参照が見つかりません。GameManagerが正しく設定されているか確認してください。");
+        }
+
+        // **AudioSourceの初期化**
+        audioSource = gameObject.AddComponent<AudioSource>();
+        audioSource.playOnAwake = false;
+
+        // **カメラの参照を取得**
+        cameraTransform = Camera.main.transform;
+
+        // **ヘルスバーの初期化**
+        if (healthBarPrefab != null)
+        {
+            healthBarInstance = Instantiate(healthBarPrefab, transform);
+            healthBarInstance.transform.localPosition = new Vector3(0, 2.0f, 0); // 頭上に配置
+            healthSlider = healthBarInstance.GetComponentInChildren<Slider>();
+
+            if (healthSlider != null)
+            {
+                healthSlider.maxValue = maxHealth;
+                healthSlider.value = health;
+            }
+        }
+        else
+        {
+            Debug.LogError("ヘルスバープレハブが設定されていません！");
         }
     }
 
     void Update()
     {
-        // 一時停止中はAttackOn()を実行せずに戻る
-        if (gm != null && gm.isPaused)
-        {
-            return;
-        }
+        if (gm != null && gm.isPaused) return;
 
-        // 一時停止されていない場合、攻撃処理を実行
         ApplyBuffFromHaze();
-        ApplyBuffFromIruka(); // イルカからのバフを適用
+        ApplyBuffFromIruka();
         AttackOn();
+        UpdateHealthBar();
+    }
+
+    private void UpdateHealthBar()
+    {
+        if (healthSlider == null || healthBarInstance == null) return;
+
+        // ヘルスバーのスライダー値を更新
+        healthSlider.value = health;
+
+        // ヘルスバーをカメラに向けて回転
+        healthBarInstance.transform.rotation = Quaternion.LookRotation(healthBarInstance.transform.position - cameraTransform.position);
+
+        // ヘルスバーの表示/非表示
+        healthBarInstance.SetActive(health < maxHealth);
+    }
+
+    private void OnDestroy()
+    {
+        if (healthBarInstance != null)
+        {
+            Destroy(healthBarInstance);
+        }
     }
 
     private void OnMouseDown()
     {
-        // テッポウエビがクリックされたとき、回復を試みる
         TryHeal();
     }
 
-    // テッポウエビがクリックされたときに呼ばれる回復メソッド
     public void TryHeal()
     {
-        // GameManagerで選択されている餌がある場合
-        if (gm.SelectedFeedType.HasValue)
-        {
-            var selectedFeed = gm.SelectedFeedType.Value;
+        if (!gm.SelectedFeedType.HasValue) { Debug.Log("餌が選択されていません。"); return; }
 
-            // 餌がオキアミ、ベントス、またはプランクトンの場合のみ回復可能
-            if (selectedFeed == GameManager.ResourceType.OkiaMi ||
-                selectedFeed == GameManager.ResourceType.Benthos ||
-                selectedFeed == GameManager.ResourceType.Plankton)
+        var selectedFeed = gm.SelectedFeedType.Value;
+        if (selectedFeed == GameManager.ResourceType.OkiaMi ||
+            selectedFeed == GameManager.ResourceType.Benthos ||
+            selectedFeed == GameManager.ResourceType.Plankton)
+        {
+            if (gm.inventory[selectedFeed] > 0 && health < maxHealth)
             {
-                // 餌の在庫がある場合のみ回復処理を行う
-                if (gm.inventory[selectedFeed] > 0)
-                {
-                    // 体力が最大値に達していない場合、回復
-                    if (health < maxHealth)
-                    {
-                        health += 2; // 回復量を設定
-                        health = Mathf.Min(health, maxHealth); // 最大体力を超えないように制限
-                        gm.inventory[selectedFeed]--; // 在庫を減らす
-                        gm.UpdateResourceUI(); // リソースUIを更新
-                        Debug.Log($"{selectedFeed} で体力を回復しました。残り在庫: {gm.inventory[selectedFeed]}");
-                    }
-                    else
-                    {
-                        Debug.Log("体力は既に最大です。");
-                    }
-                }
-                else
-                {
-                    Debug.Log($"{selectedFeed} の在庫が不足しています。");
-                }
+                health = Mathf.Min(health + 2, maxHealth);
+                gm.inventory[selectedFeed]--;
+                gm.UpdateResourceUI();
+                Debug.Log($"{selectedFeed} で体力を回復しました。残り在庫: {gm.inventory[selectedFeed]}");
             }
             else
             {
-                Debug.Log("この餌では回復できません。");
+                Debug.Log(health >= maxHealth ? "体力は既に最大です。" : $"{selectedFeed} の在庫が不足しています。");
             }
         }
         else
         {
-            Debug.Log("餌が選択されていません。");
+            Debug.Log("この餌では回復できません。");
         }
     }
 
-    // 敵を検知して攻撃するメソッド
+    public void PlaySlamEffect()
+    {
+        if (slamEffectPrefab != null && effectSpawnPoint != null)
+        {
+            GameObject effect = Instantiate(slamEffectPrefab, effectSpawnPoint.position, effectSpawnPoint.rotation);
+            Destroy(effect, 2.0f);
+            Debug.Log("たたきつけ攻撃エフェクトを生成しました！");
+        }
+
+        if (slamSound != null && audioSource != null)
+        {
+            audioSource.clip = slamSound;
+            audioSource.Play();
+        }
+        else
+        {
+            Debug.LogWarning("攻撃エフェクトまたはサウンドが設定されていません！");
+        }
+    }
+
     public void AttackOn()
     {
-        // ターゲットが設定されていない場合、敵を検知
         if (target == null)
         {
             DetectEnemy();
         }
-        else
+        else if (Vector3.Distance(transform.position, target.position) <= detectionRadius && Time.time > lastAttackTime + attackCooldown)
         {
-            // ターゲットが範囲内におり、攻撃クールダウンが終了している場合に攻撃
-            if (Vector3.Distance(transform.position, target.position) <= detectionRadius && Time.time > lastAttackTime + attackCooldown)
-            {
-                AttackTarget();
-                lastAttackTime = Time.time; // 攻撃時間を更新
-            }
+            if (!isAttacking) StartCoroutine(PerformSlamAttack());
+            lastAttackTime = Time.time;
         }
     }
 
-    // 範囲内の敵を検知してターゲットに設定するメソッド
     void DetectEnemy()
     {
-        // 検知範囲内にあるすべてのColliderを取得
         Collider[] colliders = Physics.OverlapSphere(transform.position, detectionRadius);
         Debug.Log("敵を検知しています...");
         foreach (Collider collider in colliders)
         {
-            // タグが"Enemy"と一致するオブジェクトをターゲットとして設定
             if (collider.CompareTag("Enemy"))
             {
                 target = collider.transform;
@@ -176,19 +230,48 @@ public class Udeppo : MonoBehaviour, IDamageable, IUpgradable
         }
     }
 
-    // ターゲットを攻撃するメソッド
-    void AttackTarget()
+    private System.Collections.IEnumerator PerformSlamAttack()
     {
-        IDamageable damageable = target.GetComponent<IDamageable>();
-        if (damageable != null)
+        isAttacking = true;
+
+        // **前進フェーズ**
+        Vector3 startPosition = transform.position;
+        Vector3 slamPosition = transform.position + transform.forward * slamDistance;
+        float elapsedTime = 0f;
+
+        while (elapsedTime < slamDuration)
         {
-            // ターゲットがIDamageableを持つ場合、ダメージを与える
-            damageable.TakeDamage(attackDamage);
-            Debug.Log($"{target.name} に {attackDamage} のダメージを与えました。");
+            transform.position = Vector3.Lerp(startPosition, slamPosition, elapsedTime / slamDuration);
+            elapsedTime += Time.deltaTime;
+            yield return null;
         }
+
+        // **攻撃判定**
+        Collider[] colliders = Physics.OverlapSphere(transform.position, detectionRadius);
+        foreach (Collider collider in colliders)
+        {
+            if (collider.CompareTag("Enemy"))
+            {
+                IDamageable damageable = collider.GetComponent<IDamageable>();
+                damageable?.TakeDamage(attackDamage);
+            }
+        }
+
+        // **エフェクト＆サウンドの再生**
+        PlaySlamEffect();
+
+        // **後退フェーズ**
+        elapsedTime = 0f;
+        while (elapsedTime < returnDuration)
+        {
+            transform.position = Vector3.Lerp(slamPosition, startPosition, elapsedTime / returnDuration);
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+
+        isAttacking = false;
     }
 
-    // ダメージを受けたときの処理
     public void TakeDamage(int damageAmount)
     {
         health -= damageAmount;
@@ -198,49 +281,43 @@ public class Udeppo : MonoBehaviour, IDamageable, IUpgradable
         }
     }
 
-    // TeppoEbiが倒れたときの処理
     private void Die()
     {
-        Destroy(gameObject); // オブジェクトを破壊
+        Destroy(gameObject);
     }
 
-    // 近くにハゼがいる場合、体力と最大体力を増加させる追加効果
     private void ApplyBuffFromHaze()
     {
         Collider[] colliders = Physics.OverlapSphere(transform.position, detectionRadius);
         bool isHazeNearby = false;
-        Debug.Log("近くにいるハゼを検知しています...");
         foreach (Collider collider in colliders)
         {
             Haze haze = collider.GetComponent<Haze>();
             if (haze != null && haze.gameObject != gameObject)
             {
                 isHazeNearby = true;
-                Debug.Log($"ハゼを検知しました: {haze.name}");
                 break;
             }
         }
 
-        // 体力と最大体力を設定する
         if (isHazeNearby && !maxHealthBuffApplied)
         {
-            maxHealth += 20; // ハゼがいる場合、最大体力を20増加
-            health = Mathf.Min(health + 20, maxHealth); // 現在の体力も20増加し、最大体力を超えないように制限
-            detectionRadius *= 2; // ハゼがいる場合、検知範囲を2倍にする
-            attackDamage *= 2; // ハゼがいる場合、攻撃力を2倍にする
-            maxHealthBuffApplied = true; // バフが適用されたことを記録
+            maxHealth += 20;
+            health = Mathf.Min(health + 20, maxHealth);
+            detectionRadius *= 2;
+            attackDamage *= 2;
+            maxHealthBuffApplied = true;
         }
         else if (!isHazeNearby && maxHealthBuffApplied)
         {
-            maxHealth -= 20; // ハゼがいなくなった場合、最大体力を元に戻す
-            health = Mathf.Min(health, maxHealth); // 現在の体力を最大体力に合わせる
-            detectionRadius /= 2; // 検知範囲を元に戻す
-            attackDamage /= 2; // 攻撃力を元に戻す
-            maxHealthBuffApplied = false; // バフを解除
+            maxHealth -= 20;
+            health = Mathf.Min(health, maxHealth);
+            detectionRadius /= 2;
+            attackDamage /= 2;
+            maxHealthBuffApplied = false;
         }
     }
 
-    // 近くにイルカがいる場合、攻撃力を増加させる追加効果
     private void ApplyBuffFromIruka()
     {
         Collider[] colliders = Physics.OverlapSphere(transform.position, detectionRadius);
@@ -253,8 +330,7 @@ public class Udeppo : MonoBehaviour, IDamageable, IUpgradable
                 if (!isBuffActive)
                 {
                     isBuffActive = true;
-                    attackDamage = Mathf.RoundToInt(attackDamage * 1.5f); // 攻撃力を50%増加
-                    Debug.Log($"{name} の攻撃力が強化されました: {attackDamage}");
+                    attackDamage = Mathf.RoundToInt(attackDamage * 1.5f);
                 }
                 break;
             }
@@ -263,14 +339,12 @@ public class Udeppo : MonoBehaviour, IDamageable, IUpgradable
         if (!irukaNearby && isBuffActive)
         {
             isBuffActive = false;
-            attackDamage = originalAttackDamage; // 攻撃力を元に戻す
-            Debug.Log($"{name} の攻撃力強化が終了しました。元の攻撃力に戻りました: {attackDamage}");
+            attackDamage = originalAttackDamage;
         }
     }
 
     void OnDrawGizmosSelected()
     {
-        // シーンビューで検知範囲を可視化
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(transform.position, detectionRadius);
     }
