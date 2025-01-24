@@ -1,5 +1,7 @@
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.UI;
+using System.Collections;
 
 public class Ikasan : MonoBehaviour, IDamageable, IStunnable, ISeasonEffect
 {
@@ -31,13 +33,56 @@ public class Ikasan : MonoBehaviour, IDamageable, IStunnable, ISeasonEffect
     // シーズン効果適用フラグ
     private bool seasonEffectApplied = false;
 
+    // **体当たり攻撃の設定**
+    [Header("体当たり攻撃設定")]
+    public float dashDistance = 2.0f;      // 前進距離
+    public float dashDuration = 0.3f;      // 前進時間
+    public float returnDuration = 0.3f;    // 後退時間
+    private bool isDashing = false;        // 体当たり中かどうか
+
+    // **攻撃エフェクト＆サウンド**
+    [Header("攻撃エフェクト設定")]
+    public GameObject attackEffectPrefab;  // 攻撃エフェクトのプレハブ
+    public Transform effectSpawnPoint;     // エフェクトの生成位置
+    public AudioClip attackSound;          // 攻撃サウンド
+    private AudioSource audioSource;       // サウンド再生用
+
+    // **ヘルスバー**
+    [Header("ヘルスバー設定")]
+    public GameObject healthBarPrefab;     // ヘルスバーのプレハブ
+    private GameObject healthBarInstance;  // 実際に生成されたヘルスバー
+    private Slider healthSlider;           // ヘルスバーのスライダー
+    private Transform cameraTransform;     // メインカメラのTransform
+
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
         originalAttackCooldown = attackCooldown;
         originalSpeed = agent.speed;
+
+        // AudioSourceを初期化
+        audioSource = gameObject.AddComponent<AudioSource>();
+        audioSource.playOnAwake = false;
+
+        // ヘルスバーを設定
+        cameraTransform = Camera.main.transform;
+        if (healthBarPrefab != null)
+        {
+            healthBarInstance = Instantiate(healthBarPrefab, transform);
+            healthBarInstance.transform.localPosition = new Vector3(0, 1.5f, 0); // 頭上に配置
+            healthSlider = healthBarInstance.GetComponentInChildren<Slider>();
+            if (healthSlider != null)
+            {
+                healthSlider.maxValue = health;
+                healthSlider.value = health;
+            }
+        }
+        else
+        {
+            Debug.LogError("ヘルスバープレハブが設定されていません！");
+        }
+
         FindTarget();
-        Debug.Log("Ikasanが初期化されました。ターゲットを探しています...");
     }
 
     void Update()
@@ -56,7 +101,6 @@ public class Ikasan : MonoBehaviour, IDamageable, IStunnable, ISeasonEffect
 
         if (isPoisoned)
         {
-            // 麻痺毒の効果が続く間、移動速度と攻撃クールダウンが減少する
             if (Time.time > poisonEndTime)
             {
                 RemovePoisonEffect();
@@ -74,47 +118,104 @@ public class Ikasan : MonoBehaviour, IDamageable, IStunnable, ISeasonEffect
 
             if (distanceToTarget <= attackRange)
             {
-                // 攻撃範囲内にターゲットがいる場合、移動を停止して攻撃する
                 agent.isStopped = true;
-                Debug.Log("AttackTargetメソッドを呼び出します...");
 
                 if (Time.time > lastAttackTime + attackCooldown)
                 {
-                    AttackTarget();
+                    if (!isDashing) StartCoroutine(PerformDashAttack());
                     lastAttackTime = Time.time;
                 }
             }
             else
             {
-                // 攻撃範囲外の場合はターゲットに向かって移動する
                 agent.isStopped = false;
                 agent.SetDestination(target.position);
-                Debug.Log($"ターゲットに向かって移動中: {target.name}");
             }
         }
-        else
-        {
-            Debug.Log("ターゲットが見つかりません。");
-        }
+
+        UpdateHealthBar();
+    }
+
+    private void UpdateHealthBar()
+    {
+        if (healthSlider == null || healthBarInstance == null) return;
+
+        // ヘルスバーの値を更新
+        healthSlider.value = health;
+
+        // ヘルスバーをカメラに向ける
+        healthBarInstance.transform.rotation = Quaternion.LookRotation(healthBarInstance.transform.position - cameraTransform.position);
+
+        // ヘルスバーの表示/非表示
+        healthBarInstance.SetActive(health < healthSlider.maxValue);
     }
 
     void FindTarget()
     {
-        // 優先ターゲット（Allyタグ）を探す
         GameObject allyTarget = GameObject.FindGameObjectWithTag(targetTag);
         if (allyTarget != null)
         {
             target = allyTarget.transform;
-            Debug.Log($"ターゲットを発見: {target.name} (Ally)");
             return;
         }
 
-        // Allyが見つからない場合、Baseタグのターゲットを探す
         GameObject baseTarget = GameObject.FindGameObjectWithTag(fallbackTag);
         if (baseTarget != null)
         {
             target = baseTarget.transform;
-            Debug.Log($"ターゲットを発見: {target.name} (Base)");
+        }
+    }
+
+    private IEnumerator PerformDashAttack()
+    {
+        isDashing = true;
+
+        // **前進フェーズ**
+        Vector3 startPosition = transform.position;
+        Vector3 dashPosition = transform.position + transform.forward * dashDistance;
+        float elapsedTime = 0f;
+
+        while (elapsedTime < dashDuration)
+        {
+            transform.position = Vector3.Lerp(startPosition, dashPosition, elapsedTime / dashDuration);
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+
+        // **攻撃フェーズ**
+        if (target != null)
+        {
+            AttackTarget();
+        }
+
+        PlayAttackEffect();
+
+        // **後退フェーズ**
+        elapsedTime = 0f;
+        while (elapsedTime < returnDuration)
+        {
+            transform.position = Vector3.Lerp(dashPosition, startPosition, elapsedTime / returnDuration);
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+
+        isDashing = false;
+    }
+
+    private void PlayAttackEffect()
+    {
+        // 攻撃エフェクト
+        if (attackEffectPrefab != null && effectSpawnPoint != null)
+        {
+            GameObject effect = Instantiate(attackEffectPrefab, effectSpawnPoint.position, effectSpawnPoint.rotation);
+            Destroy(effect, 2.0f);
+        }
+
+        // 攻撃サウンド
+        if (attackSound != null && audioSource != null)
+        {
+            audioSource.clip = attackSound;
+            audioSource.Play();
         }
     }
 
@@ -124,18 +225,12 @@ public class Ikasan : MonoBehaviour, IDamageable, IStunnable, ISeasonEffect
         if (damageable != null)
         {
             damageable.TakeDamage(attackDamage);
-            Debug.Log($"ターゲットに攻撃しました: {target.name}, ダメージ: {attackDamage}");
-        }
-        else
-        {
-            Debug.Log($"ターゲット {target.name} は攻撃対象としてIDamageableを持っていません。");
         }
     }
 
     public void TakeDamage(int damageAmount)
     {
         health -= damageAmount;
-        Debug.Log($"Ikasanがダメージを受けました: {damageAmount}, 残り体力: {health}");
         if (health <= 0)
         {
             Die();
@@ -148,10 +243,9 @@ public class Ikasan : MonoBehaviour, IDamageable, IStunnable, ISeasonEffect
         poisonEndTime = Time.time + duration;
         if (!poisonEffectApplied)
         {
-            agent.speed = originalSpeed * slowEffect; // 移動速度を減少させる
-            attackCooldown = originalAttackCooldown * 2; // 攻撃クールダウンを長くする
+            agent.speed = originalSpeed * slowEffect;
+            attackCooldown = originalAttackCooldown * 2;
             poisonEffectApplied = true;
-            Debug.Log($"{name} が麻痺毒の効果を受けました。持続時間: {duration}秒、スロー効果: {slowEffect}");
         }
     }
 
@@ -159,34 +253,28 @@ public class Ikasan : MonoBehaviour, IDamageable, IStunnable, ISeasonEffect
     {
         isStunned = true;
         stunEndTime = Time.time + duration;
-        agent.isStopped = true; // スタン中は移動を止める
-        Debug.Log($"{name} がスタン状態になりました。持続時間: {duration}秒");
+        agent.isStopped = true;
     }
 
     private void RemoveStunEffect()
     {
         isStunned = false;
-        agent.isStopped = false; // 移動を再開する
-        Debug.Log($"{name} のスタン効果が解除されました。");
+        agent.isStopped = false;
     }
 
     private void RemovePoisonEffect()
     {
         isPoisoned = false;
-        agent.speed = originalSpeed; // 移動速度を元に戻す
-        attackCooldown = originalAttackCooldown; // 攻撃クールダウンを元に戻す
+        agent.speed = originalSpeed;
+        attackCooldown = originalAttackCooldown;
         poisonEffectApplied = false;
-        Debug.Log($"{name} の麻痺毒の効果が解除されました。");
     }
 
     private void Die()
     {
-        // Ikasanが倒れた際の処理（例えば破壊など）
-        Debug.Log($"{name} が倒れました。");
         Destroy(gameObject);
     }
 
-    // シーズンの効果を適用するメソッド
     public void ApplySeasonEffect(GameManager.Season currentSeason)
     {
         if (seasonEffectApplied) return;
@@ -196,34 +284,28 @@ public class Ikasan : MonoBehaviour, IDamageable, IStunnable, ISeasonEffect
             case GameManager.Season.Spring:
                 attackDamage = Mathf.RoundToInt(attackDamage * 0.8f);
                 health = Mathf.Max(health - 3, 1);
-                Debug.Log("春のデバフが適用されました: 体力と攻撃力が減少");
                 break;
             case GameManager.Season.Summer:
                 attackDamage = Mathf.RoundToInt(attackDamage * 1.3f);
                 health += 5;
-                Debug.Log("夏のバフが適用されました: 体力と攻撃力が増加");
                 break;
             case GameManager.Season.Autumn:
                 attackDamage = Mathf.RoundToInt(attackDamage * 0.7f);
                 health = Mathf.Max(health - 5, 1);
-                Debug.Log("秋のデバフが適用されました: 体力と攻撃力が大幅に減少");
                 break;
             case GameManager.Season.Winter:
                 attackDamage = Mathf.RoundToInt(attackDamage * 1.4f);
                 health += 10;
-                Debug.Log("冬のバフが適用されました: 体力と攻撃力が大幅に増加");
                 break;
         }
 
         seasonEffectApplied = true;
     }
 
-    // シーズンの効果をリセットするメソッド
     public void ResetSeasonEffect()
     {
         attackDamage = 2;
         health = 10;
         seasonEffectApplied = false;
-        Debug.Log("シーズン効果がリセットされました。");
     }
 }
