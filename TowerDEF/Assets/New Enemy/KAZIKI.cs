@@ -1,5 +1,7 @@
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.UI;
+using System.Collections;
 
 public class KAZIKI : MonoBehaviour, IDamageable, IStunnable, ISeasonEffect
 {
@@ -8,13 +10,15 @@ public class KAZIKI : MonoBehaviour, IDamageable, IStunnable, ISeasonEffect
 
     private Transform target; // ターゲットのTransform
     public int health = 60; // KAZIKIの体力
-    public int attackDamage = 40; // 突進攻撃の威力を上げる
+    public int maxHealth = 60; // 最大体力
+    public int attackDamage = 40; // 突進攻撃の威力
     public float attackRange = 6f; // 攻撃範囲
     public float attackCooldown = 3f; // 攻撃クールダウン時間
-    public float moveSpeed = 8f; // 通常の移動速度が高速
+    public float moveSpeed = 8f; // 通常の移動速度
 
     private float lastAttackTime;
     private NavMeshAgent agent;
+
     public float dashChargeTime = 2.0f; // 突進攻撃のチャージ時間
     public float dashSpeed = 20f; // 突進攻撃の速度
     public float dashDistance = 15f; // 突進攻撃の距離
@@ -39,6 +43,20 @@ public class KAZIKI : MonoBehaviour, IDamageable, IStunnable, ISeasonEffect
     private GameManager.Season currentSeason;
     private int originalHealth;
 
+    // **ヘルスバー設定**
+    [Header("ヘルスバー設定")]
+    public GameObject healthBarPrefab; // ヘルスバーのプレハブ
+    private GameObject healthBarInstance;
+    private Slider healthSlider;
+    private Transform cameraTransform;
+
+    // **エフェクト＆サウンド設定**
+    [Header("攻撃エフェクト＆サウンド設定")]
+    public GameObject attackEffectPrefab; // 突進攻撃のエフェクト
+    public Transform effectSpawnPoint; // エフェクト生成位置
+    public AudioClip dashSound; // 突進攻撃時のサウンド
+    private AudioSource audioSource;
+
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
@@ -46,6 +64,29 @@ public class KAZIKI : MonoBehaviour, IDamageable, IStunnable, ISeasonEffect
         originalAttackCooldown = attackCooldown;
         originalSpeed = agent.speed;
         originalHealth = health;
+
+        // ヘルスバーを生成
+        cameraTransform = Camera.main.transform;
+        if (healthBarPrefab != null)
+        {
+            healthBarInstance = Instantiate(healthBarPrefab, transform);
+            healthBarInstance.transform.localPosition = new Vector3(0, 2.0f, 0); // 頭上に配置
+            healthSlider = healthBarInstance.GetComponentInChildren<Slider>();
+            if (healthSlider != null)
+            {
+                healthSlider.maxValue = maxHealth;
+                healthSlider.value = health;
+            }
+        }
+        else
+        {
+            Debug.LogError("ヘルスバープレハブが設定されていません！");
+        }
+
+        // AudioSourceを設定
+        audioSource = gameObject.AddComponent<AudioSource>();
+        audioSource.playOnAwake = false;
+
         FindTarget();
     }
 
@@ -65,17 +106,13 @@ public class KAZIKI : MonoBehaviour, IDamageable, IStunnable, ISeasonEffect
 
         if (isPoisoned)
         {
-            // 麻痺毒の効果が続く間、移動速度と攻撃クールダウンが減少する
             if (Time.time > poisonEndTime)
             {
                 RemovePoisonEffect();
             }
         }
 
-        if (isCharging || isDashing)
-        {
-            return; // チャージ中または突進中は動作を制御する
-        }
+        if (isCharging || isDashing) return;
 
         if (target == null || (!target.CompareTag(primaryTargetTag) && !target.CompareTag(fallbackTag)))
         {
@@ -88,23 +125,43 @@ public class KAZIKI : MonoBehaviour, IDamageable, IStunnable, ISeasonEffect
 
             if (distanceToTarget <= attackRange)
             {
-                // 攻撃範囲内にターゲットがいる場合、移動を停止して攻撃する
                 agent.isStopped = true;
-                StartCoroutine(ChargeAndDashAttack());
-                lastAttackTime = Time.time;
+
+                if (Time.time > lastAttackTime + attackCooldown)
+                {
+                    StartCoroutine(ChargeAndDashAttack());
+                    lastAttackTime = Time.time;
+                }
             }
             else
             {
-                // 攻撃範囲外の場合はターゲットに向かって移動する
                 agent.isStopped = false;
                 agent.SetDestination(target.position);
             }
+        }
+
+        UpdateHealthBar();
+    }
+
+    private void UpdateHealthBar()
+    {
+        if (healthSlider == null || healthBarInstance == null) return;
+
+        healthSlider.value = health;
+        healthBarInstance.transform.rotation = Quaternion.LookRotation(healthBarInstance.transform.position - cameraTransform.position);
+        healthBarInstance.SetActive(health < maxHealth);
+    }
+
+    private void OnDestroy()
+    {
+        if (healthBarInstance != null)
+        {
+            Destroy(healthBarInstance);
         }
     }
 
     void FindTarget()
     {
-        // 優先ターゲット（Allyタグ）を探す
         GameObject allyTarget = GameObject.FindGameObjectWithTag(primaryTargetTag);
         if (allyTarget != null)
         {
@@ -112,7 +169,6 @@ public class KAZIKI : MonoBehaviour, IDamageable, IStunnable, ISeasonEffect
             return;
         }
 
-        // Allyが見つからない場合、Baseタグのターゲットを探す
         GameObject baseTarget = GameObject.FindGameObjectWithTag(fallbackTag);
         if (baseTarget != null)
         {
@@ -120,18 +176,20 @@ public class KAZIKI : MonoBehaviour, IDamageable, IStunnable, ISeasonEffect
         }
     }
 
-    System.Collections.IEnumerator ChargeAndDashAttack()
+    private IEnumerator ChargeAndDashAttack()
     {
         isCharging = true;
-        agent.isStopped = true; // チャージ中は移動を停止する
+        agent.isStopped = true; // チャージ中は停止
         yield return new WaitForSeconds(dashChargeTime);
 
         isCharging = false;
         isDashing = true;
         agent.isStopped = false;
 
-        Vector3 dashDirection = transform.forward; // 突進方向は現在の前方
+        Vector3 dashDirection = transform.forward; // 突進方向
         float dashStartTime = Time.time;
+
+        PlayAttackEffect(); // エフェクト＆サウンド再生
 
         while (Time.time < dashStartTime + (dashDistance / dashSpeed))
         {
@@ -141,7 +199,7 @@ public class KAZIKI : MonoBehaviour, IDamageable, IStunnable, ISeasonEffect
 
         isDashing = false;
 
-        // 攻撃処理（貫通攻撃）
+        // 突進攻撃処理
         RaycastHit[] hits = Physics.SphereCastAll(transform.position, 1.0f, dashDirection, dashDistance);
         foreach (RaycastHit hit in hits)
         {
@@ -153,18 +211,31 @@ public class KAZIKI : MonoBehaviour, IDamageable, IStunnable, ISeasonEffect
             }
         }
 
-        // 突進後の反動でHPを10%失う
-        TakeDamage((int)(health * 0.1f));
+        TakeDamage((int)(health * 0.1f)); // 突進後の反動でHPを10%減少
         if (health <= 0)
         {
             Die();
         }
     }
 
+    private void PlayAttackEffect()
+    {
+        if (attackEffectPrefab != null && effectSpawnPoint != null)
+        {
+            GameObject effect = Instantiate(attackEffectPrefab, effectSpawnPoint.position, effectSpawnPoint.rotation);
+            Destroy(effect, 2.0f);
+        }
+
+        if (dashSound != null && audioSource != null)
+        {
+            audioSource.clip = dashSound;
+            audioSource.Play();
+        }
+    }
+
     public void TakeDamage(int damageAmount)
     {
         health -= damageAmount;
-        Debug.Log($"{name} がダメージを受けました: {damageAmount}, 残り体力: {health}");
         if (health <= 0)
         {
             Die();
@@ -177,10 +248,9 @@ public class KAZIKI : MonoBehaviour, IDamageable, IStunnable, ISeasonEffect
         poisonEndTime = Time.time + duration;
         if (!poisonEffectApplied)
         {
-            agent.speed = originalSpeed * slowEffect; // 移動速度を減少させる
-            attackCooldown = originalAttackCooldown * 2; // 攻撃クールダウンを長くする
+            agent.speed = originalSpeed * slowEffect;
+            attackCooldown = originalAttackCooldown * 2;
             poisonEffectApplied = true;
-            Debug.Log($"{name} が麻痺毒の効果を受けました。持続時間: {duration}秒、スロー効果: {slowEffect}");
         }
     }
 
@@ -188,34 +258,28 @@ public class KAZIKI : MonoBehaviour, IDamageable, IStunnable, ISeasonEffect
     {
         isStunned = true;
         stunEndTime = Time.time + duration;
-        agent.isStopped = true; // スタン中は移動を止める
-        Debug.Log($"{name} がスタン状態になりました。持続時間: {duration}秒");
+        agent.isStopped = true;
     }
 
     private void RemoveStunEffect()
     {
         isStunned = false;
-        agent.isStopped = false; // 移動を再開する
-        Debug.Log($"{name} のスタン効果が解除されました。");
+        agent.isStopped = false;
     }
 
     private void RemovePoisonEffect()
     {
         isPoisoned = false;
-        agent.speed = originalSpeed; // 移動速度を元に戻す
-        attackCooldown = originalAttackCooldown; // 攻撃クールダウンを元に戻す
+        agent.speed = originalSpeed;
+        attackCooldown = originalAttackCooldown;
         poisonEffectApplied = false;
-        Debug.Log($"{name} の麻痺毒の効果が解除されました。");
     }
 
     private void Die()
     {
-        // KAZIKIが倒れた際の処理（例えば破壊など）
-        Debug.Log($"{name} が倒れました。");
         Destroy(gameObject);
     }
 
-    // シーズンの効果を適用するメソッド
     public void ApplySeasonEffect(GameManager.Season currentSeason)
     {
         if (seasonEffectApplied && this.currentSeason == currentSeason) return;
@@ -228,36 +292,30 @@ public class KAZIKI : MonoBehaviour, IDamageable, IStunnable, ISeasonEffect
             case GameManager.Season.Spring:
                 moveSpeed = originalSpeed * 0.9f;
                 attackDamage = Mathf.RoundToInt(attackDamage * 0.9f);
-                Debug.Log("春のデバフが適用されました: 移動速度と攻撃力が減少");
                 break;
             case GameManager.Season.Summer:
                 health += 10;
                 attackDamage = Mathf.RoundToInt(attackDamage * 1.2f);
-                Debug.Log("夏のバフが適用されました: 体力と攻撃力が増加");
                 break;
             case GameManager.Season.Autumn:
                 moveSpeed = originalSpeed * 0.8f;
                 attackDamage = Mathf.RoundToInt(attackDamage * 0.8f);
                 health -= 10;
-                Debug.Log("秋のデバフが適用されました: 移動速度と攻撃力が減少");
                 break;
             case GameManager.Season.Winter:
                 attackDamage = Mathf.RoundToInt(attackDamage * 1.3f);
                 health += 15;
-                Debug.Log("冬のバフが適用されました: 体力と攻撃力が増加");
                 break;
         }
 
         seasonEffectApplied = true;
     }
 
-    // シーズン効果のリセット
     public void ResetSeasonEffect()
     {
         moveSpeed = originalSpeed;
-        attackDamage = 40; // 元の攻撃力に戻す
-        health = originalHealth; // 元の体力に戻す
+        attackDamage = 40;
+        health = originalHealth;
         seasonEffectApplied = false;
-        Debug.Log("シーズン効果がリセットされました。");
     }
 }

@@ -1,5 +1,7 @@
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.UI;
+using System.Collections;
 
 public class ONIKAMASU : MonoBehaviour, IDamageable, IStunnable, ISeasonEffect
 {
@@ -9,13 +11,18 @@ public class ONIKAMASU : MonoBehaviour, IDamageable, IStunnable, ISeasonEffect
 
     private Transform target; // ターゲットのTransform
     public int health = 45; // ONIKAMASUの体力
+    public int maxHealth = 45; // 最大体力
     public int attackDamage = 10; // 攻撃力
     public float attackRange = 4f; // 攻撃範囲
     public float attackCooldown = 1.5f; // 攻撃クールダウン時間
-    public float moveSpeed = 6f; // 移動速度が速い
+    public float dashDistance = 5f; // 体当たりの距離
+    public float dashDuration = 0.3f; // 体当たりの時間
+    public float moveSpeed = 6f; // 移動速度
 
     private float lastAttackTime;
     private NavMeshAgent agent;
+
+    private bool isDashing = false;
 
     // 麻痺毒関連の設定
     public bool isPoisoned = false; // 麻痺毒状態かどうか
@@ -34,6 +41,20 @@ public class ONIKAMASU : MonoBehaviour, IDamageable, IStunnable, ISeasonEffect
     private GameManager.Season currentSeason;
     private int originalHealth;
 
+    // **ヘルスバー設定**
+    [Header("ヘルスバー設定")]
+    public GameObject healthBarPrefab; // ヘルスバーのプレハブ
+    private GameObject healthBarInstance;
+    private Slider healthSlider;
+    private Transform cameraTransform;
+
+    // **エフェクト＆サウンド設定**
+    [Header("攻撃エフェクト＆サウンド設定")]
+    public GameObject attackEffectPrefab; // 攻撃エフェクトのプレハブ
+    public Transform effectSpawnPoint; // エフェクト生成位置
+    public AudioClip dashSound; // 攻撃サウンド
+    private AudioSource audioSource;
+
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
@@ -41,6 +62,29 @@ public class ONIKAMASU : MonoBehaviour, IDamageable, IStunnable, ISeasonEffect
         originalAttackCooldown = attackCooldown;
         originalSpeed = agent.speed;
         originalHealth = health;
+
+        // ヘルスバーを生成
+        cameraTransform = Camera.main.transform;
+        if (healthBarPrefab != null)
+        {
+            healthBarInstance = Instantiate(healthBarPrefab, transform);
+            healthBarInstance.transform.localPosition = new Vector3(0, 2.0f, 0); // 頭上に配置
+            healthSlider = healthBarInstance.GetComponentInChildren<Slider>();
+            if (healthSlider != null)
+            {
+                healthSlider.maxValue = maxHealth;
+                healthSlider.value = health;
+            }
+        }
+        else
+        {
+            Debug.LogError("ヘルスバープレハブが設定されていません！");
+        }
+
+        // AudioSourceを設定
+        audioSource = gameObject.AddComponent<AudioSource>();
+        audioSource.playOnAwake = false;
+
         FindTarget();
     }
 
@@ -60,7 +104,6 @@ public class ONIKAMASU : MonoBehaviour, IDamageable, IStunnable, ISeasonEffect
 
         if (isPoisoned)
         {
-            // 麻痺毒の効果が続く間、移動速度と攻撃クールダウンが減少する
             if (Time.time > poisonEndTime)
             {
                 RemovePoisonEffect();
@@ -72,32 +115,49 @@ public class ONIKAMASU : MonoBehaviour, IDamageable, IStunnable, ISeasonEffect
             FindTarget();
         }
 
-        if (target != null)
+        if (target != null && !isDashing)
         {
             float distanceToTarget = Vector3.Distance(transform.position, target.position);
 
             if (distanceToTarget <= attackRange)
             {
-                // 攻撃範囲内にターゲットがいる場合、移動を停止して攻撃する
                 agent.isStopped = true;
+
                 if (Time.time > lastAttackTime + attackCooldown)
                 {
-                    AttackTarget();
+                    StartCoroutine(PerformDashAttack());
                     lastAttackTime = Time.time;
                 }
             }
             else
             {
-                // 攻撃範囲外の場合はターゲットに向かって移動する
                 agent.isStopped = false;
                 agent.SetDestination(target.position);
             }
+        }
+
+        UpdateHealthBar();
+    }
+
+    private void UpdateHealthBar()
+    {
+        if (healthSlider == null || healthBarInstance == null) return;
+
+        healthSlider.value = health;
+        healthBarInstance.transform.rotation = Quaternion.LookRotation(healthBarInstance.transform.position - cameraTransform.position);
+        healthBarInstance.SetActive(health < maxHealth);
+    }
+
+    private void OnDestroy()
+    {
+        if (healthBarInstance != null)
+        {
+            Destroy(healthBarInstance);
         }
     }
 
     void FindTarget()
     {
-        // 優先ターゲット（koukakuタグ）を探す
         GameObject koukakuTarget = GameObject.FindGameObjectWithTag(primaryTargetTag);
         if (koukakuTarget != null)
         {
@@ -105,7 +165,6 @@ public class ONIKAMASU : MonoBehaviour, IDamageable, IStunnable, ISeasonEffect
             return;
         }
 
-        // 次に優先するターゲット（Allyタグ）を探す
         GameObject allyTarget = GameObject.FindGameObjectWithTag(secondaryTargetTag);
         if (allyTarget != null)
         {
@@ -113,7 +172,6 @@ public class ONIKAMASU : MonoBehaviour, IDamageable, IStunnable, ISeasonEffect
             return;
         }
 
-        // それでも見つからない場合、Baseタグのターゲットを探す
         GameObject baseTarget = GameObject.FindGameObjectWithTag(fallbackTag);
         if (baseTarget != null)
         {
@@ -121,19 +179,60 @@ public class ONIKAMASU : MonoBehaviour, IDamageable, IStunnable, ISeasonEffect
         }
     }
 
-    void AttackTarget()
+    private IEnumerator PerformDashAttack()
     {
-        IDamageable damageable = target.GetComponent<IDamageable>();
-        if (damageable != null)
+        isDashing = true;
+
+        // 体当たり攻撃の処理
+        Vector3 startPosition = transform.position;
+        Vector3 dashPosition = transform.position + transform.forward * dashDistance;
+        float elapsedTime = 0f;
+
+        PlayAttackEffect(); // エフェクト＆サウンド再生
+
+        while (elapsedTime < dashDuration)
         {
-            damageable.TakeDamage(attackDamage);
+            transform.position = Vector3.Lerp(startPosition, dashPosition, elapsedTime / dashDuration);
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+
+        // 攻撃判定
+        Collider[] hitColliders = Physics.OverlapSphere(transform.position, attackRange);
+        foreach (var collider in hitColliders)
+        {
+            if (collider.CompareTag(primaryTargetTag) || collider.CompareTag(secondaryTargetTag) || collider.CompareTag(fallbackTag))
+            {
+                IDamageable damageable = collider.GetComponent<IDamageable>();
+                if (damageable != null)
+                {
+                    damageable.TakeDamage(attackDamage);
+                    Debug.Log($"ONIKAMASUが {collider.name} に攻撃を行いました。ダメージ: {attackDamage}");
+                }
+            }
+        }
+
+        isDashing = false;
+    }
+
+    private void PlayAttackEffect()
+    {
+        if (attackEffectPrefab != null && effectSpawnPoint != null)
+        {
+            GameObject effect = Instantiate(attackEffectPrefab, effectSpawnPoint.position, effectSpawnPoint.rotation);
+            Destroy(effect, 2.0f);
+        }
+
+        if (dashSound != null && audioSource != null)
+        {
+            audioSource.clip = dashSound;
+            audioSource.Play();
         }
     }
 
     public void TakeDamage(int damageAmount)
     {
         health -= damageAmount;
-        Debug.Log($"{name} がダメージを受けました: {damageAmount}, 残り体力: {health}");
         if (health <= 0)
         {
             Die();
@@ -146,10 +245,9 @@ public class ONIKAMASU : MonoBehaviour, IDamageable, IStunnable, ISeasonEffect
         poisonEndTime = Time.time + duration;
         if (!poisonEffectApplied)
         {
-            agent.speed = originalSpeed * slowEffect; // 移動速度を減少させる
-            attackCooldown = originalAttackCooldown * 2; // 攻撃クールダウンを長くする
+            agent.speed = originalSpeed * slowEffect;
+            attackCooldown = originalAttackCooldown * 2;
             poisonEffectApplied = true;
-            Debug.Log($"{name} が麻痺毒の効果を受けました。持続時間: {duration}秒、スロー効果: {slowEffect}");
         }
     }
 
@@ -157,34 +255,28 @@ public class ONIKAMASU : MonoBehaviour, IDamageable, IStunnable, ISeasonEffect
     {
         isStunned = true;
         stunEndTime = Time.time + duration;
-        agent.isStopped = true; // スタン中は移動を止める
-        Debug.Log($"{name} がスタン状態になりました。持続時間: {duration}秒");
+        agent.isStopped = true;
     }
 
     private void RemoveStunEffect()
     {
         isStunned = false;
-        agent.isStopped = false; // 移動を再開する
-        Debug.Log($"{name} のスタン効果が解除されました。");
+        agent.isStopped = false;
     }
 
     private void RemovePoisonEffect()
     {
         isPoisoned = false;
-        agent.speed = originalSpeed; // 移動速度を元に戻す
-        attackCooldown = originalAttackCooldown; // 攻撃クールダウンを元に戻す
+        agent.speed = originalSpeed;
+        attackCooldown = originalAttackCooldown;
         poisonEffectApplied = false;
-        Debug.Log($"{name} の麻痺毒の効果が解除されました。");
     }
 
     private void Die()
     {
-        // ONIKAMASUが倒れた際の処理（例えば破壊など）
-        Debug.Log($"{name} が倒れました。");
         Destroy(gameObject);
     }
 
-    // シーズンの効果を適用するメソッド
     public void ApplySeasonEffect(GameManager.Season currentSeason)
     {
         if (seasonEffectApplied && this.currentSeason == currentSeason) return;
@@ -198,25 +290,21 @@ public class ONIKAMASU : MonoBehaviour, IDamageable, IStunnable, ISeasonEffect
                 attackDamage = Mathf.RoundToInt(attackDamage * 1.4f);
                 moveSpeed = originalSpeed * 1.3f;
                 agent.speed = moveSpeed;
-                Debug.Log($"{name} は春のシーズンで強化されました。攻撃力: {attackDamage}, 移動速度: {moveSpeed}");
                 break;
             case GameManager.Season.Summer:
                 attackDamage = Mathf.RoundToInt(attackDamage * 1.6f);
                 moveSpeed = originalSpeed * 1.5f;
                 agent.speed = moveSpeed;
-                Debug.Log($"{name} は夏のシーズンで大幅に強化されました。攻撃力: {attackDamage}, 移動速度: {moveSpeed}");
                 break;
             case GameManager.Season.Autumn:
                 attackDamage = Mathf.RoundToInt(attackDamage * 0.8f);
                 moveSpeed = originalSpeed * 0.8f;
                 agent.speed = moveSpeed;
-                Debug.Log($"{name} は秋のシーズンで弱体化しました。攻撃力: {attackDamage}, 移動速度: {moveSpeed}");
                 break;
             case GameManager.Season.Winter:
                 attackDamage = Mathf.RoundToInt(attackDamage * 0.6f);
                 moveSpeed = originalSpeed * 0.7f;
                 agent.speed = moveSpeed;
-                Debug.Log($"{name} は冬のシーズンで大幅に弱体化しました。攻撃力: {attackDamage}, 移動速度: {moveSpeed}");
                 break;
         }
 
