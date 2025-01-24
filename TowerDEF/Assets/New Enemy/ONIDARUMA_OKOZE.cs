@@ -1,5 +1,7 @@
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.UI;
+using System.Collections;
 
 public class ONIDARUMA_OKOZE : MonoBehaviour, IDamageable, IStunnable, ISeasonEffect
 {
@@ -8,18 +10,22 @@ public class ONIDARUMA_OKOZE : MonoBehaviour, IDamageable, IStunnable, ISeasonEf
     public string fallbackTag = "Base"; // 最後に狙うターゲットのタグ
 
     private Transform target; // ターゲットのTransform
-    public int health = 60; // ONIDARUMA_OKOZEの体力
+    public int health = 60; // オニダルマオコゼの体力
+    public int maxHealth = 60; // 最大体力
     public int attackDamage = 30; // 攻撃力
     public float attackRange = 4f; // 攻撃範囲
     public float attackCooldown = 2f; // 攻撃クールダウン時間
-    public float moveSpeed = 2f; // 移動速度がとても遅い
+    public float moveSpeed = 2f; // 移動速度が遅い
     public int thornDamage = 10; // 棘の反撃ダメージ
     public float poisonDamage = 2f; // 毒のダメージ
     public float poisonDuration = 5f; // 毒の持続時間
     public float poisonInterval = 1f; // 毒のダメージ間隔
+    public float dashDistance = 6f; // 体当たり攻撃の距離
+    public float dashDuration = 0.8f; // 体当たり攻撃の時間
 
     private float lastAttackTime;
     private NavMeshAgent agent;
+    private bool isDashing = false;
 
     // 麻痺毒関連の設定
     public bool isPoisoned = false; // 麻痺毒状態かどうか
@@ -38,6 +44,20 @@ public class ONIDARUMA_OKOZE : MonoBehaviour, IDamageable, IStunnable, ISeasonEf
     private GameManager.Season currentSeason;
     private int originalHealth;
 
+    // ヘルスバー設定
+    [Header("ヘルスバー設定")]
+    public GameObject healthBarPrefab; // ヘルスバーのプレハブ
+    private GameObject healthBarInstance;
+    private Slider healthSlider;
+    private Transform cameraTransform;
+
+    // 攻撃エフェクト＆サウンド
+    [Header("攻撃エフェクト＆サウンド")]
+    public GameObject attackEffectPrefab; // 攻撃エフェクトのプレハブ
+    public Transform effectSpawnPoint; // エフェクト生成位置
+    public AudioClip dashSound; // 体当たり攻撃のサウンド
+    private AudioSource audioSource;
+
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
@@ -45,6 +65,25 @@ public class ONIDARUMA_OKOZE : MonoBehaviour, IDamageable, IStunnable, ISeasonEf
         originalAttackCooldown = attackCooldown;
         originalSpeed = agent.speed;
         originalHealth = health;
+
+        // ヘルスバーを生成
+        cameraTransform = Camera.main.transform;
+        if (healthBarPrefab != null)
+        {
+            healthBarInstance = Instantiate(healthBarPrefab, transform);
+            healthBarInstance.transform.localPosition = new Vector3(0, 2.5f, 0); // 頭上に配置
+            healthSlider = healthBarInstance.GetComponentInChildren<Slider>();
+            if (healthSlider != null)
+            {
+                healthSlider.maxValue = maxHealth;
+                healthSlider.value = health;
+            }
+        }
+
+        // オーディオソースを設定
+        audioSource = gameObject.AddComponent<AudioSource>();
+        audioSource.playOnAwake = false;
+
         FindTarget();
     }
 
@@ -64,7 +103,6 @@ public class ONIDARUMA_OKOZE : MonoBehaviour, IDamageable, IStunnable, ISeasonEf
 
         if (isPoisoned)
         {
-            // 麻痺毒の効果が続く間、移動速度と攻撃クールダウンが減少する
             if (Time.time > poisonEndTime)
             {
                 RemovePoisonEffect();
@@ -76,29 +114,49 @@ public class ONIDARUMA_OKOZE : MonoBehaviour, IDamageable, IStunnable, ISeasonEf
             FindTarget();
         }
 
-        if (target != null)
+        if (target != null && !isDashing)
         {
             float distanceToTarget = Vector3.Distance(transform.position, target.position);
 
             if (distanceToTarget <= attackRange)
             {
-                // 攻撃範囲内にターゲットがいる場合、移動を停止して攻撃する
                 agent.isStopped = true;
-                AttackTarget();
-                lastAttackTime = Time.time;
+
+                if (Time.time > lastAttackTime + attackCooldown)
+                {
+                    StartCoroutine(PerformDashAttack());
+                    lastAttackTime = Time.time;
+                }
             }
             else
             {
-                // 攻撃範囲外の場合はターゲットに向かって移動する
                 agent.isStopped = false;
                 agent.SetDestination(target.position);
             }
+        }
+
+        UpdateHealthBar();
+    }
+
+    private void UpdateHealthBar()
+    {
+        if (healthSlider == null || healthBarInstance == null) return;
+
+        healthSlider.value = health;
+        healthBarInstance.transform.rotation = Quaternion.LookRotation(healthBarInstance.transform.position - cameraTransform.position);
+        healthBarInstance.SetActive(health < maxHealth);
+    }
+
+    private void OnDestroy()
+    {
+        if (healthBarInstance != null)
+        {
+            Destroy(healthBarInstance);
         }
     }
 
     void FindTarget()
     {
-        // 優先ターゲット（koukakuタグ）を探す
         GameObject koukakuTarget = GameObject.FindGameObjectWithTag(primaryTargetTag);
         if (koukakuTarget != null)
         {
@@ -106,7 +164,6 @@ public class ONIDARUMA_OKOZE : MonoBehaviour, IDamageable, IStunnable, ISeasonEf
             return;
         }
 
-        // 次に優先するターゲット（Allyタグ）を探す
         GameObject allyTarget = GameObject.FindGameObjectWithTag(secondaryTargetTag);
         if (allyTarget != null)
         {
@@ -114,7 +171,6 @@ public class ONIDARUMA_OKOZE : MonoBehaviour, IDamageable, IStunnable, ISeasonEf
             return;
         }
 
-        // それでも見つからない場合、Baseタグのターゲットを探す
         GameObject baseTarget = GameObject.FindGameObjectWithTag(fallbackTag);
         if (baseTarget != null)
         {
@@ -122,21 +178,61 @@ public class ONIDARUMA_OKOZE : MonoBehaviour, IDamageable, IStunnable, ISeasonEf
         }
     }
 
-    void AttackTarget()
+    private IEnumerator PerformDashAttack()
     {
-        if (Time.time > lastAttackTime + attackCooldown)
+        isDashing = true;
+
+        // 体当たり攻撃の処理
+        Vector3 startPosition = transform.position;
+        Vector3 dashPosition = transform.position + transform.forward * dashDistance;
+        float elapsedTime = 0f;
+
+        PlayAttackEffect(); // エフェクト＆サウンド再生
+
+        while (elapsedTime < dashDuration)
         {
-            IDamageable damageable = target.GetComponent<IDamageable>();
-            if (damageable != null)
+            transform.position = Vector3.Lerp(startPosition, dashPosition, elapsedTime / dashDuration);
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+
+        // 攻撃判定
+        Collider[] hitColliders = Physics.OverlapSphere(transform.position, attackRange);
+        foreach (var collider in hitColliders)
+        {
+            if (collider.CompareTag(primaryTargetTag) || collider.CompareTag(secondaryTargetTag))
             {
-                damageable.TakeDamage(attackDamage);
+                IDamageable damageable = collider.GetComponent<IDamageable>();
+                if (damageable != null)
+                {
+                    damageable.TakeDamage(attackDamage);
+                    Debug.Log($"オニダルマオコゼが {collider.name} に攻撃を行いました。ダメージ: {attackDamage}");
+                }
             }
+        }
+
+        isDashing = false;
+    }
+
+    private void PlayAttackEffect()
+    {
+        if (attackEffectPrefab != null && effectSpawnPoint != null)
+        {
+            GameObject effect = Instantiate(attackEffectPrefab, effectSpawnPoint.position, effectSpawnPoint.rotation);
+            Destroy(effect, 2.0f);
+        }
+
+        if (dashSound != null && audioSource != null)
+        {
+            audioSource.clip = dashSound;
+            audioSource.Play();
         }
     }
 
     public void TakeDamage(int damageAmount)
     {
         health -= damageAmount;
+        Debug.Log($"{name} がダメージを受けました: {damageAmount}, 残り体力: {health}");
         if (health <= 0)
         {
             Die();
@@ -158,26 +254,17 @@ public class ONIDARUMA_OKOZE : MonoBehaviour, IDamageable, IStunnable, ISeasonEf
                 if (damageable != null)
                 {
                     damageable.TakeDamage(thornDamage);
-                    Debug.Log("ONIDARUMA_OKOZEが棘の反撃を行いました: " + collider.name);
                     StartCoroutine(ApplyPoison(damageable));
                 }
             }
         }
     }
 
-    private System.Collections.IEnumerator ApplyPoison(IDamageable damageable)
+    private IEnumerator ApplyPoison(IDamageable damageable)
     {
         float elapsedTime = 0f;
-        MonoBehaviour damageableObject = damageable as MonoBehaviour;
-
         while (elapsedTime < poisonDuration)
         {
-            if (damageableObject == null || damageableObject.gameObject == null)
-            {
-                // 対象が破壊されていたらコルーチンを終了する
-                yield break;
-            }
-
             damageable.TakeDamage((int)poisonDamage);
             elapsedTime += poisonInterval;
             yield return new WaitForSeconds(poisonInterval);
@@ -190,10 +277,9 @@ public class ONIDARUMA_OKOZE : MonoBehaviour, IDamageable, IStunnable, ISeasonEf
         poisonEndTime = Time.time + duration;
         if (!poisonEffectApplied)
         {
-            agent.speed = originalSpeed * slowEffect; // 移動速度を減少させる
-            attackCooldown = originalAttackCooldown * 2; // 攻撃クールダウンを長くする
+            agent.speed = originalSpeed * slowEffect;
+            attackCooldown = originalAttackCooldown * 2;
             poisonEffectApplied = true;
-            Debug.Log($"{name} が麻痺毒の効果を受けました。持続時間: {duration}秒、スロー効果: {slowEffect}");
         }
     }
 
@@ -201,33 +287,28 @@ public class ONIDARUMA_OKOZE : MonoBehaviour, IDamageable, IStunnable, ISeasonEf
     {
         isStunned = true;
         stunEndTime = Time.time + duration;
-        agent.isStopped = true; // スタン中は移動を止める
-        Debug.Log($"{name} がスタン状態になりました。持続時間: {duration}秒");
+        agent.isStopped = true;
     }
 
     private void RemoveStunEffect()
     {
         isStunned = false;
-        agent.isStopped = false; // 移動を再開する
-        Debug.Log($"{name} のスタン効果が解除されました。");
+        agent.isStopped = false;
     }
 
     private void RemovePoisonEffect()
     {
         isPoisoned = false;
-        agent.speed = originalSpeed; // 移動速度を元に戻す
-        attackCooldown = originalAttackCooldown; // 攻撃クールダウンを元に戻す
+        agent.speed = originalSpeed;
+        attackCooldown = originalAttackCooldown;
         poisonEffectApplied = false;
-        Debug.Log($"{name} の麻痺毒の効果が解除されました。");
     }
 
     private void Die()
     {
-        // ONIDARUMA_OKOZEが倒れた際の処理（例えば破壊など）
         Destroy(gameObject);
     }
 
-    // シーズンの効果を適用するメソッド
     public void ApplySeasonEffect(GameManager.Season currentSeason)
     {
         if (seasonEffectApplied && this.currentSeason == currentSeason) return;
@@ -240,22 +321,18 @@ public class ONIDARUMA_OKOZE : MonoBehaviour, IDamageable, IStunnable, ISeasonEf
             case GameManager.Season.Spring:
                 attackDamage = Mathf.RoundToInt(attackDamage * 0.7f);
                 health = Mathf.RoundToInt(health * 0.8f);
-                Debug.Log($"{name} は春のシーズンで弱体化しました。攻撃力: {attackDamage}, 体力: {health}");
                 break;
             case GameManager.Season.Summer:
                 attackDamage = Mathf.RoundToInt(attackDamage * 1.3f);
                 health = Mathf.RoundToInt(health * 1.2f);
-                Debug.Log($"{name} は夏のシーズンで強化されました。攻撃力: {attackDamage}, 体力: {health}");
                 break;
             case GameManager.Season.Autumn:
                 attackDamage = Mathf.RoundToInt(attackDamage * 0.7f);
                 health = Mathf.RoundToInt(health * 0.8f);
-                Debug.Log($"{name} は秋のシーズンで弱体化しました。攻撃力: {attackDamage}, 体力: {health}");
                 break;
             case GameManager.Season.Winter:
                 attackDamage = Mathf.RoundToInt(attackDamage * 1.3f);
                 health = Mathf.RoundToInt(health * 1.2f);
-                Debug.Log($"{name} は冬のシーズンで強化されました。攻撃力: {attackDamage}, 体力: {health}");
                 break;
         }
 
@@ -267,6 +344,5 @@ public class ONIDARUMA_OKOZE : MonoBehaviour, IDamageable, IStunnable, ISeasonEf
         attackDamage = 30;
         health = originalHealth;
         seasonEffectApplied = false;
-        Debug.Log($"{name} のシーズン効果がリセットされました。攻撃力: {attackDamage}, 体力: {health}");
     }
 }

@@ -1,20 +1,26 @@
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.UI;
+using System.Collections;
 
 public class SAME : MonoBehaviour, IDamageable, IStunnable, ISeasonEffect
 {
     public string primaryTargetTag = "Ally"; // 優先ターゲットのタグを設定
-    public string fallbackTag = "Base"; // 最後に狩うターゲットのタグ
+    public string fallbackTag = "Base"; // 最後に狙うターゲットのタグ
 
     private Transform target; // ターゲットのTransform
-    public int health = 150; // SAMEの体力が高い
-    public int attackDamage = 80; // SAMEの攻撃力が高い
+    public int health = 150; // SAMEの体力
+    public int maxHealth = 150; // 最大体力
+    public int attackDamage = 80; // SAMEの攻撃力
     public float attackRange = 4f; // 攻撃範囲
     public float attackCooldown = 5f; // 攻撃クールダウン時間
     public float moveSpeed = 5f; // 通常の移動速度
+    public float dashDistance = 6f; // 体当たり攻撃の距離
+    public float dashDuration = 0.5f; // 体当たり攻撃の時間
 
     private float lastAttackTime;
     private NavMeshAgent agent;
+    private bool isDashing = false;
 
     // 麻痺毒関連の設定
     public bool isPoisoned = false; // 麻痺毒状態かどうか
@@ -33,6 +39,20 @@ public class SAME : MonoBehaviour, IDamageable, IStunnable, ISeasonEffect
     private GameManager.Season currentSeason;
     private int originalHealth;
 
+    // **ヘルスバー設定**
+    [Header("ヘルスバー設定")]
+    public GameObject healthBarPrefab; // ヘルスバーのプレハブ
+    private GameObject healthBarInstance;
+    private Slider healthSlider;
+    private Transform cameraTransform;
+
+    // **エフェクト＆サウンド設定**
+    [Header("攻撃エフェクト＆サウンド設定")]
+    public GameObject attackEffectPrefab; // 攻撃エフェクトのプレハブ
+    public Transform effectSpawnPoint; // エフェクト生成位置
+    public AudioClip dashSound; // 体当たりサウンド
+    private AudioSource audioSource;
+
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
@@ -40,6 +60,29 @@ public class SAME : MonoBehaviour, IDamageable, IStunnable, ISeasonEffect
         originalAttackCooldown = attackCooldown;
         originalSpeed = agent.speed;
         originalHealth = health;
+
+        // ヘルスバーを生成
+        cameraTransform = Camera.main.transform;
+        if (healthBarPrefab != null)
+        {
+            healthBarInstance = Instantiate(healthBarPrefab, transform);
+            healthBarInstance.transform.localPosition = new Vector3(0, 2.5f, 0); // 頭上に配置
+            healthSlider = healthBarInstance.GetComponentInChildren<Slider>();
+            if (healthSlider != null)
+            {
+                healthSlider.maxValue = maxHealth;
+                healthSlider.value = health;
+            }
+        }
+        else
+        {
+            Debug.LogError("ヘルスバープレハブが設定されていません！");
+        }
+
+        // AudioSourceを設定
+        audioSource = gameObject.AddComponent<AudioSource>();
+        audioSource.playOnAwake = false;
+
         FindTarget();
     }
 
@@ -59,7 +102,6 @@ public class SAME : MonoBehaviour, IDamageable, IStunnable, ISeasonEffect
 
         if (isPoisoned)
         {
-            // 麻痺毒の効果が続く間、移動速度と攻撃クールダウンが減少する
             if (Time.time > poisonEndTime)
             {
                 RemovePoisonEffect();
@@ -71,32 +113,49 @@ public class SAME : MonoBehaviour, IDamageable, IStunnable, ISeasonEffect
             FindTarget();
         }
 
-        if (target != null)
+        if (target != null && !isDashing)
         {
             float distanceToTarget = Vector3.Distance(transform.position, target.position);
 
             if (distanceToTarget <= attackRange)
             {
-                // 攻撃範囲内にターゲットがいる場合、移動を停止して攻撃する
                 agent.isStopped = true;
+
                 if (Time.time > lastAttackTime + attackCooldown)
                 {
-                    PerformAreaAttack();
+                    StartCoroutine(PerformDashAttack());
                     lastAttackTime = Time.time;
                 }
             }
             else
             {
-                // 攻撃範囲外の場合はターゲットに向かって移動する
                 agent.isStopped = false;
                 agent.SetDestination(target.position);
             }
+        }
+
+        UpdateHealthBar();
+    }
+
+    private void UpdateHealthBar()
+    {
+        if (healthSlider == null || healthBarInstance == null) return;
+
+        healthSlider.value = health;
+        healthBarInstance.transform.rotation = Quaternion.LookRotation(healthBarInstance.transform.position - cameraTransform.position);
+        healthBarInstance.SetActive(health < maxHealth);
+    }
+
+    private void OnDestroy()
+    {
+        if (healthBarInstance != null)
+        {
+            Destroy(healthBarInstance);
         }
     }
 
     void FindTarget()
     {
-        // 優先ターゲット（Allyタグ）を探す
         GameObject allyTarget = GameObject.FindGameObjectWithTag(primaryTargetTag);
         if (allyTarget != null)
         {
@@ -104,7 +163,6 @@ public class SAME : MonoBehaviour, IDamageable, IStunnable, ISeasonEffect
             return;
         }
 
-        // Allyが見つからない場合、Baseタグのターゲットを探す
         GameObject baseTarget = GameObject.FindGameObjectWithTag(fallbackTag);
         if (baseTarget != null)
         {
@@ -112,23 +170,54 @@ public class SAME : MonoBehaviour, IDamageable, IStunnable, ISeasonEffect
         }
     }
 
-    void PerformAreaAttack()
+    private IEnumerator PerformDashAttack()
     {
-        Collider[] colliders = Physics.OverlapSphere(transform.position, attackRange);
-        int targetCount = 0;
-        foreach (Collider collider in colliders)
+        isDashing = true;
+
+        // 体当たり攻撃の処理
+        Vector3 startPosition = transform.position;
+        Vector3 dashPosition = transform.position + transform.forward * dashDistance;
+        float elapsedTime = 0f;
+
+        PlayAttackEffect(); // エフェクト＆サウンド再生
+
+        while (elapsedTime < dashDuration)
+        {
+            transform.position = Vector3.Lerp(startPosition, dashPosition, elapsedTime / dashDuration);
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+
+        // 攻撃判定
+        Collider[] hitColliders = Physics.OverlapSphere(transform.position, attackRange);
+        foreach (var collider in hitColliders)
         {
             if (collider.CompareTag(primaryTargetTag) || collider.CompareTag(fallbackTag))
             {
-                targetCount++;
                 IDamageable damageable = collider.GetComponent<IDamageable>();
                 if (damageable != null)
                 {
-                    int totalDamage = attackDamage + (targetCount - 1) * 10; // 攻撃範囲にいるターゲット数に応じてダメージ増加
-                    damageable.TakeDamage(totalDamage);
-                    Debug.Log("SAMEが範囲攻撃を行いました: " + collider.name + " ダメージ: " + totalDamage);
+                    damageable.TakeDamage(attackDamage);
+                    Debug.Log($"SAMEが {collider.name} に攻撃を行いました。ダメージ: {attackDamage}");
                 }
             }
+        }
+
+        isDashing = false;
+    }
+
+    private void PlayAttackEffect()
+    {
+        if (attackEffectPrefab != null && effectSpawnPoint != null)
+        {
+            GameObject effect = Instantiate(attackEffectPrefab, effectSpawnPoint.position, effectSpawnPoint.rotation);
+            Destroy(effect, 2.0f);
+        }
+
+        if (dashSound != null && audioSource != null)
+        {
+            audioSource.clip = dashSound;
+            audioSource.Play();
         }
     }
 
@@ -148,10 +237,9 @@ public class SAME : MonoBehaviour, IDamageable, IStunnable, ISeasonEffect
         poisonEndTime = Time.time + duration;
         if (!poisonEffectApplied)
         {
-            agent.speed = originalSpeed * slowEffect; // 移動速度を減少させる
-            attackCooldown = originalAttackCooldown * 2; // 攻撃クールダウンを長くする
+            agent.speed = originalSpeed * slowEffect;
+            attackCooldown = originalAttackCooldown * 2;
             poisonEffectApplied = true;
-            Debug.Log($"{name} が麻痺毒の効果を受けました。持続時間: {duration}秒、スロー効果: {slowEffect}");
         }
     }
 
@@ -159,34 +247,28 @@ public class SAME : MonoBehaviour, IDamageable, IStunnable, ISeasonEffect
     {
         isStunned = true;
         stunEndTime = Time.time + duration;
-        agent.isStopped = true; // 移動を停止する
-        Debug.Log($"{name} がスタン状態になりました。持続時間: {duration}秒");
+        agent.isStopped = true;
     }
 
     private void RemoveStunEffect()
     {
         isStunned = false;
-        agent.isStopped = false; // 移動を再開する
-        Debug.Log($"{name} のスタン効果が解除されました。");
+        agent.isStopped = false;
     }
 
     private void RemovePoisonEffect()
     {
         isPoisoned = false;
-        agent.speed = originalSpeed; // 移動速度を元に戻す
-        attackCooldown = originalAttackCooldown; // 攻撃クールダウンを元に戻す
+        agent.speed = originalSpeed;
+        attackCooldown = originalAttackCooldown;
         poisonEffectApplied = false;
-        Debug.Log($"{name} の麻痺毒の効果が解除されました。");
     }
 
     private void Die()
     {
-        // SAMEが倒れた際の処理（例えば破壊など）
-        Debug.Log($"{name} が倒れました。");
         Destroy(gameObject);
     }
 
-    // シーズンの効果を適用するメソッド
     public void ApplySeasonEffect(GameManager.Season currentSeason)
     {
         if (seasonEffectApplied && this.currentSeason == currentSeason) return;
@@ -200,25 +282,21 @@ public class SAME : MonoBehaviour, IDamageable, IStunnable, ISeasonEffect
                 attackDamage = Mathf.RoundToInt(attackDamage * 1.3f);
                 moveSpeed = originalSpeed * 1.2f;
                 agent.speed = moveSpeed;
-                Debug.Log($"{name} は春のシーズンで強化されました。攻撃力: {attackDamage}, 移動速度: {moveSpeed}");
                 break;
             case GameManager.Season.Summer:
                 attackDamage = Mathf.RoundToInt(attackDamage * 1.5f);
                 moveSpeed = originalSpeed * 1.4f;
                 agent.speed = moveSpeed;
-                Debug.Log($"{name} は夏のシーズンで大幅に強化されました。攻撃力: {attackDamage}, 移動速度: {moveSpeed}");
                 break;
             case GameManager.Season.Autumn:
                 attackDamage = Mathf.RoundToInt(attackDamage * 0.9f);
                 moveSpeed = originalSpeed * 0.9f;
                 agent.speed = moveSpeed;
-                Debug.Log($"{name} は秋のシーズンで若干弱体化しました。攻撃力: {attackDamage}, 移動速度: {moveSpeed}");
                 break;
             case GameManager.Season.Winter:
                 attackDamage = Mathf.RoundToInt(attackDamage * 0.7f);
                 moveSpeed = originalSpeed * 0.6f;
                 agent.speed = moveSpeed;
-                Debug.Log($"{name} は冬のシーズンで大幅に弱体化しました。攻撃力: {attackDamage}, 移動速度: {moveSpeed}");
                 break;
         }
 
