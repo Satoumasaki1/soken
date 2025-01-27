@@ -34,7 +34,7 @@ public class EsaSpawner : MonoBehaviour
             Debug.Log("âaÉÇÅ[ÉhÇ®ÇÒ");
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             RaycastHit hit;
-            if (Physics.Raycast(ray, out hit) && hit.transform == planeArea)
+            if (Physics.Raycast(ray, out hit) && hit.transform.name == planeArea.name)
             {
                 if (gameManager.SelectedFeedType == null)
                 {

@@ -116,7 +116,7 @@ public class FishDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, I
         if (Physics.Raycast(ray, out hit))
         {
             // レイキャストがヒットした場所がマップ上かどうかを確認
-            if (hit.collider != null && hit.collider.CompareTag("Map"))
+            if (hit.collider != null )
             {
                 // マップ上にいる場合のみ生成
                 if (gameManager.finventory[fishType] > 0)
