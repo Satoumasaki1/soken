@@ -12,9 +12,10 @@ GameObject:
   - component: {fileID: 1706846104966128661}
   - component: {fileID: 1049016362083065101}
   - component: {fileID: 2392633262396992569}
+  - component: {fileID: 491048245}
   m_Layer: 0
   m_Name: Plane
-  m_TagString: Untagged
+  m_TagString: esaba
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -28,7 +29,7 @@ Transform:
   m_GameObject: {fileID: 3234246209307793107}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -1.0206795, y: 1.08, z: -170.70532}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 1.8927, y: 1.8927, z: 1.8927}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1036481655463702685}
@@ -118,6 +119,28 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &491048245
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3234246209307793107}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c79a64b0be2393141988048994353cec, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  esa1Prefab: {fileID: 5016053616592243517, guid: c393b427a7eee1e40bd6256b8feb98a6, type: 3}
+  esa2Prefab: {fileID: 8047582805775970611, guid: d107fd8d93ed1a44f9648f9653515c85, type: 3}
+  esa3Prefab: {fileID: 1496680414008625923, guid: 76899ae0a7fa487409375af2d6b8eee5, type: 3}
+  esa4Prefab: {fileID: 0}
+  esa5Prefab: {fileID: 0}
+  esa6Prefab: {fileID: 0}
+  planeArea: {fileID: 0}
+  maxEsaCount: 4
+  currentEsaCount: 0
+  objectStar: {fileID: 0}
 --- !u!1001 &324226383598084386
 PrefabInstance:
   m_ObjectHideFlags: 0
