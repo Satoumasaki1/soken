@@ -93,7 +93,7 @@ MonoBehaviour:
   gameManager: {fileID: 0}
   fishType: 4
   canvas: {fileID: 0}
-  fishPrefab: {fileID: 8406294964934083184, guid: 43e101c13fe662643af3533428831cf4, type: 3}
+  fishPrefab: {fileID: 8936589947165573171, guid: eaf7d0a9cd86d9347af7c8136e617768, type: 3}
   yOffset: 0.5
   objectStarPrefab: {fileID: 6364204782024598179, guid: d0ea393c19ec6994fa47359e24063cdb, type: 3}
 --- !u!1 &5812282857324210730

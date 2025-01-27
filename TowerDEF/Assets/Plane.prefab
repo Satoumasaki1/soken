@@ -131,12 +131,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c79a64b0be2393141988048994353cec, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  esa1Prefab: {fileID: 5016053616592243517, guid: c393b427a7eee1e40bd6256b8feb98a6, type: 3}
-  esa2Prefab: {fileID: 8047582805775970611, guid: d107fd8d93ed1a44f9648f9653515c85, type: 3}
-  esa3Prefab: {fileID: 1496680414008625923, guid: 76899ae0a7fa487409375af2d6b8eee5, type: 3}
-  esa4Prefab: {fileID: 0}
-  esa5Prefab: {fileID: 0}
-  esa6Prefab: {fileID: 0}
+  esa1Prefab: {fileID: 5195729894356973928, guid: 22143fd0d2dc6fd4d9413b52038c4b57, type: 3}
+  esa2Prefab: {fileID: 5017048659304985875, guid: e358e8f4245fffd45a020b58d55bf58c, type: 3}
+  esa3Prefab: {fileID: 7588006219677987026, guid: 08aa0e7ef1a274947a01b8b2c6075331, type: 3}
+  esa4Prefab: {fileID: 665132079177134384, guid: 06bed47abafa17140abd39e5399ed41c, type: 3}
+  esa5Prefab: {fileID: 7258676135951317450, guid: f4243cbbe442d554cad6bdc1cbb4898d, type: 3}
+  esa6Prefab: {fileID: 7892038232013055268, guid: 46608bda384f05d46bf1cca92a11e794, type: 3}
   planeArea: {fileID: 5624870698334670729}
   maxEsaCount: 4
   currentEsaCount: 0
