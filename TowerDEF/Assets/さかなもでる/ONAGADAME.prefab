@@ -99,6 +99,13 @@ MonoBehaviour:
   detectionRadius: 15
   attackCooldown: 1.5
   stunDuration: 12
+  tailSwingDistance: 2
+  tailSwingDuration: 0.3
+  tailReturnDuration: 0.3
+  tailAttackEffectPrefab: {fileID: 0}
+  effectSpawnPoint: {fileID: 2120679741617805448}
+  tailAttackSound: {fileID: 0}
+  healthBarPrefab: {fileID: 5958667905632117616, guid: de011bde56c58fb488a74b2670eaec75, type: 3}
   gm: {fileID: 0}
 --- !u!1 &1776617720484572172
 GameObject:

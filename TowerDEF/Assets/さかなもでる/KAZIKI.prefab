@@ -115,6 +115,7 @@ MonoBehaviour:
   primaryTargetTag: Ally
   fallbackTag: Base
   health: 60
+  maxHealth: 60
   attackDamage: 40
   attackRange: 6
   attackCooldown: 3
@@ -124,6 +125,10 @@ MonoBehaviour:
   dashDistance: 15
   isPoisoned: 0
   poisonSlowEffect: 0.5
+  healthBarPrefab: {fileID: 5958667905632117616, guid: de011bde56c58fb488a74b2670eaec75, type: 3}
+  attackEffectPrefab: {fileID: 0}
+  effectSpawnPoint: {fileID: 936019612518617532}
+  dashSound: {fileID: 0}
 --- !u!195 &826359531641894481
 NavMeshAgent:
   m_ObjectHideFlags: 0

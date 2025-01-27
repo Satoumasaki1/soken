@@ -838,7 +838,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   health: 20
-  maxHealth: 20
   isBuffActive: 0
   attackDamage: 20
   buffMultiplier: 1.5
@@ -846,6 +845,10 @@ MonoBehaviour:
   attackRange: 15
   attackCooldown: 1.5
   gm: {fileID: 0}
+  healthBarPrefab: {fileID: 5958667905632117616, guid: de011bde56c58fb488a74b2670eaec75, type: 3}
+  attackEffectPrefab: {fileID: 0}
+  effectSpawnPoint: {fileID: 3240492748202639445}
+  attackSound: {fileID: 0}
 --- !u!1 &3186705177753826347
 GameObject:
   m_ObjectHideFlags: 0

@@ -131,6 +131,13 @@ MonoBehaviour:
   attackDamage: 10
   detectionRadius: 20
   attackCooldown: 3
+  slamDistance: 2
+  slamDuration: 0.3
+  returnDuration: 0.3
+  slamEffectPrefab: {fileID: 0}
+  effectSpawnPoint: {fileID: 1170599463739695619}
+  slamSound: {fileID: 0}
+  healthBarPrefab: {fileID: 5958667905632117616, guid: de011bde56c58fb488a74b2670eaec75, type: 3}
   gm: {fileID: 0}
 --- !u!195 &-5399866929577487377
 NavMeshAgent:

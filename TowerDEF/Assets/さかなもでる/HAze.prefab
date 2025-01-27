@@ -134,6 +134,13 @@ MonoBehaviour:
   detectionRadius: 10
   attackCooldown: 1
   gm: {fileID: 0}
+  attackEffectPrefab: {fileID: 0}
+  effectSpawnPoint: {fileID: 2767693694550160350}
+  attackSound: {fileID: 0}
+  dashDistance: 2
+  dashDuration: 0.2
+  returnDuration: 0.2
+  healthBarPrefab: {fileID: 5958667905632117616, guid: de011bde56c58fb488a74b2670eaec75, type: 3}
 --- !u!95 &-2838132658090819543
 Animator:
   serializedVersion: 5

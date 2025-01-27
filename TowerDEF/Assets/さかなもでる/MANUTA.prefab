@@ -764,7 +764,12 @@ MonoBehaviour:
   attackDamage: 5
   buffMultiplier: 1.5
   detectionRadius: 10
+  attackRange: 5
   attackCooldown: 1
+  attackEffectPrefab: {fileID: 0}
+  effectSpawnPoint: {fileID: 8133809206551378746}
+  attackSound: {fileID: 0}
+  healthBarPrefab: {fileID: 5958667905632117616, guid: de011bde56c58fb488a74b2670eaec75, type: 3}
   gm: {fileID: 0}
 --- !u!136 &8183069793550944457
 CapsuleCollider:

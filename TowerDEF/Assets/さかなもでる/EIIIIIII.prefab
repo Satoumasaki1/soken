@@ -786,6 +786,13 @@ MonoBehaviour:
   poisonInterval: 1
   isPoisoned: 0
   poisonSlowEffect: 0.5
+  attackEffectPrefab: {fileID: 0}
+  effectSpawnPoint: {fileID: 0}
+  attackSound: {fileID: 0}
+  dashDistance: 3
+  dashDuration: 0.3
+  returnDuration: 0.3
+  healthBarPrefab: {fileID: 5958667905632117616, guid: de011bde56c58fb488a74b2670eaec75, type: 3}
 --- !u!195 &3606480094920668451
 NavMeshAgent:
   m_ObjectHideFlags: 0
