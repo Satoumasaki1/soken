@@ -31,6 +31,7 @@ public class EsaSpawner : MonoBehaviour
         // 餌を置くモードがオンの場合にクリック処理を実行
         if (isEsaPlacingMode && Input.GetMouseButtonDown(0))
         {
+            Debug.Log("餌モードおん");
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             RaycastHit hit;
             if (Physics.Raycast(ray, out hit) && hit.transform == planeArea)

@@ -1,0 +1,101 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &119464315761602676
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 119464315761602666}
+  - component: {fileID: 119464315761602667}
+  - component: {fileID: 119464315761602665}
+  m_Layer: 0
+  m_Name: GameManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &119464315761602666
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 119464315761602676}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -2.652942, y: -0.53729415, z: 3.0847995}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &119464315761602667
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 119464315761602676}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e7c0e66c23681b64fbd441e0c31ccf80, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  baseHealth: 100
+  gameOverPanel: {fileID: 1429154686363779090, guid: 11b3c4942ef27ed4581135bf1fb877cb, type: 3}
+  nextwavebutton: {fileID: 0}
+  CanvasPanel: {fileID: 0}
+  es: {fileID: 0}
+  totalWaves: 50
+  waveDuration: 5
+  waveText: {fileID: 0}
+  currentWave: 0
+  isPaused: 0
+  playButton: {fileID: 0}
+  pauseButton: {fileID: 0}
+  okiaMiText: {fileID: 0}
+  benthosText: {fileID: 0}
+  planktonText: {fileID: 0}
+  feedAText: {fileID: 0}
+  feedBText: {fileID: 0}
+  feedCText: {fileID: 0}
+  urokoText: {fileID: 0}
+  pearlText: {fileID: 0}
+  Kani: {fileID: 0}
+  Tyoutyou: {fileID: 0}
+  Kaisou: {fileID: 0}
+  Syako: {fileID: 0}
+  Koban: {fileID: 0}
+  Teppou: {fileID: 0}
+  Manta: {fileID: 0}
+  Uni: {fileID: 0}
+  currentDay: 0
+  enemyDays: 04000000080000000c0000001000000014000000
+  WaveText: {fileID: 0}
+  fishPrefabs:
+  - {fileID: 1966599486778967982, guid: 8740ce4dafd7fca468706f66537ab755, type: 3}
+  - {fileID: 8406294964934083184, guid: 43e101c13fe662643af3533428831cf4, type: 3}
+  - {fileID: 8406294964934083184, guid: 2563e0264a5db0d4fb2cbe558d6162d0, type: 3}
+  - {fileID: 8406294964934083184, guid: 03b552b0152d9f5409bd89a4c0ec4890, type: 3}
+  - {fileID: 8406294964934083184, guid: 15fe4dfee937c6c4ba3abcc6be3dfec3, type: 3}
+  - {fileID: 8406294964934083184, guid: cfe6dc39bad2c9b4bb2a2f80ce2ff094, type: 3}
+  - {fileID: 8406294964934083184, guid: ed6cde183651b764d9d373459e8ede07, type: 3}
+  - {fileID: 8406294964934083184, guid: 110895d75576b53488cd22bf943cee89, type: 3}
+  currentSeason: 0
+--- !u!114 &119464315761602665
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 119464315761602676}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d47cb1bd48fe72544ac91ed234a16e45, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  textObject: {fileID: 0}

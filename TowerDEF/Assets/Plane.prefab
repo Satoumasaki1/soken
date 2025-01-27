@@ -116,7 +116,7 @@ MeshCollider:
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 4
-  m_Convex: 0
+  m_Convex: 1
   m_CookingOptions: 30
   m_Mesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!114 &491048245
@@ -137,7 +137,7 @@ MonoBehaviour:
   esa4Prefab: {fileID: 0}
   esa5Prefab: {fileID: 0}
   esa6Prefab: {fileID: 0}
-  planeArea: {fileID: 0}
+  planeArea: {fileID: 5624870698334670729}
   maxEsaCount: 4
   currentEsaCount: 0
   objectStar: {fileID: 0}
