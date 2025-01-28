@@ -79,7 +79,7 @@ public class Udeppo : MonoBehaviour, IDamageable, IUpgradable
 
     void Start()
     {
-        LoadState();
+        //LoadState();
 
         // GameManager‚ÌQÆ‚ğæ“¾
         if (gm == null)

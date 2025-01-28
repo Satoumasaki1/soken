@@ -125,6 +125,8 @@ public class Manuta : MonoBehaviour, IDamageable, ISeasonEffect, IUpgradable
 
     void Update()
     {
+        UpdateHealthBar();
+        UpdateHealthBar();
         if (gm != null && gm.isPaused) return;
 
         ApplyBuffFromKobanuzame();

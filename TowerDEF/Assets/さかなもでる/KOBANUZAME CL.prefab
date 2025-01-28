@@ -329,7 +329,7 @@ GameObject:
   - component: {fileID: 827367374551142775}
   m_Layer: 0
   m_Name: KOBANUZAME CL
-  m_TagString: Ally
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -341,16 +341,16 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8936589947165573171}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: 0, y: 1, z: 0, w: 0}
   m_LocalPosition: {x: 48.29446, y: 7.02, z: -121.44}
-  m_LocalScale: {x: 0.838844, y: 0.838844, z: 0.838844}
-  m_ConstrainProportionsScale: 0
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 8799300650849739846}
   - {fileID: 6443985937306671239}
   m_Father: {fileID: 0}
   m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
 --- !u!136 &2683550254724201205
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -361,10 +361,10 @@ CapsuleCollider:
   m_Material: {fileID: 0}
   m_IsTrigger: 0
   m_Enabled: 1
-  m_Radius: 0.7413097
+  m_Radius: 0.84165716
   m_Height: 3.1461143
   m_Direction: 2
-  m_Center: {x: 0.023909388, y: 0.023340162, z: -0.22160281}
+  m_Center: {x: 0.07788789, y: 0.8417053, z: -0.2216028}
 --- !u!114 &3503799410937921125
 MonoBehaviour:
   m_ObjectHideFlags: 0

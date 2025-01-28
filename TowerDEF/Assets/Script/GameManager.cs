@@ -139,6 +139,7 @@ public class GameManager : MonoBehaviour
         {
             Debug.Log("敵が攻めてくる日です: Day " + currentDay);
         }
+        waveText.text = currentWave.ToString() + "タイド";
     }
 
     // 一時停止と再開を切り替えるメソッド
@@ -262,6 +263,7 @@ public class GameManager : MonoBehaviour
         Debug.Log("Current Season: " + currentSeason); // 現在のシーズンをデバッグログに表示
         waveTimer = waveDuration; // ウェーブのタイマーをリセット
         Debug.Log("Wave " + currentWave + " started");
+        
 
         WaveStarted?.Invoke(); // ウェーブ開始イベントを発火
 

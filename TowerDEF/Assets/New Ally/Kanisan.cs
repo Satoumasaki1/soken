@@ -5,7 +5,8 @@ using System.Collections;
 public class Kanisan : MonoBehaviour, IDamageable, ISeasonEffect, IUpgradable
 {
     // Kanisanの基本プロパティ
-    public int health = 10;
+    public int health = 50;
+    public int Maxhealth = 50;
     private bool maxHealthBuffApplied = false;
     public bool isBuffActive = false; // バフが有効かどうかのフラグ
     private int originalAttackDamage = 3;
@@ -125,7 +126,7 @@ public class Kanisan : MonoBehaviour, IDamageable, ISeasonEffect, IUpgradable
         // イルカからのバフ適用
         ApplyIrukaBuff();
 
-        // 体力バーを更新
+        // 体力バーを更新  
         UpdateHealthBar();
     }
 
@@ -137,7 +138,7 @@ public class Kanisan : MonoBehaviour, IDamageable, ISeasonEffect, IUpgradable
         healthSlider.value = healthPercentage;
 
         // 体力がマックスの場合は非表示
-        healthBarInstance.SetActive(health < 10);
+        healthBarInstance.SetActive(health < Maxhealth);
 
         // 体力バーの回転をカメラに合わせる
         if (Camera.main != null)

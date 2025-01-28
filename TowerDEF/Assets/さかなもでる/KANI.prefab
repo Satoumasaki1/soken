@@ -837,7 +837,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a91f7c711eae92f489091aa183152272, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  health: 20
+  health: 10
+  Maxhealth: 10
   isBuffActive: 0
   attackDamage: 20
   buffMultiplier: 1.5
