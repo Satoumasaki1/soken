@@ -9,6 +9,6 @@ public class TitleTOGame : MonoBehaviour
     public void Gamesin()
     {
         
-        SceneManager.LoadScene("Game Scene");
+        SceneManager.LoadScene("wakijikken");
     }
 }
