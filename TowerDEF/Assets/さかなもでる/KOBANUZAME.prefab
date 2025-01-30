@@ -326,6 +326,7 @@ GameObject:
   - component: {fileID: 8597078779976866441}
   - component: {fileID: 2683550254724201205}
   - component: {fileID: 3503799410937921125}
+  - component: {fileID: 652936276776160962}
   m_Layer: 0
   m_Name: KOBANUZAME
   m_TagString: Ally
@@ -388,3 +389,21 @@ MonoBehaviour:
   attackSound: {fileID: 0}
   healthBarPrefab: {fileID: 5958667905632117616, guid: de011bde56c58fb488a74b2670eaec75, type: 3}
   gm: {fileID: 0}
+--- !u!114 &652936276776160962
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8936589947165573171}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5fea29bb7c508c244a1f805a5fd3fc4d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  outlineMode: 0
+  outlineColor: {r: 0, g: 0, b: 1, a: 1}
+  outlineWidth: 2
+  precomputeOutline: 0
+  bakeKeys: []
+  bakeValues: []

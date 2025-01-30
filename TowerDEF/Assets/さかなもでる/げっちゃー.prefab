@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 828950513728884219}
   - component: {fileID: 8300067297822867114}
   - component: {fileID: 8300067297822867115}
+  - component: {fileID: 4650188817552461722}
   m_Layer: 0
   m_Name: "\u3052\u3063\u3061\u3083\u30FC"
   m_TagString: Untagged
@@ -72,6 +73,24 @@ MonoBehaviour:
   attackInterval: 1
   moveSpeed: 3
   maxHP: 30
+--- !u!114 &4650188817552461722
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 57094019003471681}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5fea29bb7c508c244a1f805a5fd3fc4d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  outlineMode: 0
+  outlineColor: {r: 0, g: 0, b: 1, a: 1}
+  outlineWidth: 2
+  precomputeOutline: 0
+  bakeKeys: []
+  bakeValues: []
 --- !u!1 &195074425583664193
 GameObject:
   m_ObjectHideFlags: 0

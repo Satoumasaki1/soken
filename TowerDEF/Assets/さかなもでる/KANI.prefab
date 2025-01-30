@@ -787,6 +787,7 @@ GameObject:
   - component: {fileID: 3240492748202639445}
   - component: {fileID: 2860729491366959853}
   - component: {fileID: 2860729491366959852}
+  - component: {fileID: 8373916940961621234}
   m_Layer: 0
   m_Name: KANI
   m_TagString: Ally
@@ -850,6 +851,24 @@ MonoBehaviour:
   attackEffectPrefab: {fileID: 5880797563127281583, guid: 265d3a5ba69981a4698ceabcedf368b0, type: 3}
   effectSpawnPoint: {fileID: 3240492748202639445}
   attackSound: {fileID: 0}
+--- !u!114 &8373916940961621234
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2860729491366959855}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5fea29bb7c508c244a1f805a5fd3fc4d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  outlineMode: 0
+  outlineColor: {r: 0, g: 0, b: 1, a: 1}
+  outlineWidth: 2
+  precomputeOutline: 0
+  bakeKeys: []
+  bakeValues: []
 --- !u!1 &3186705177753826347
 GameObject:
   m_ObjectHideFlags: 0
