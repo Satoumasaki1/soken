@@ -383,7 +383,7 @@ MonoBehaviour:
   buffMultiplier: 1.5
   detectionRadius: 10
   attackCooldown: 1
-  attackEffectPrefab: {fileID: 0}
+  attackEffectPrefab: {fileID: 5880797563127281583, guid: 265d3a5ba69981a4698ceabcedf368b0, type: 3}
   effectSpawnPoint: {fileID: 8597078779976866441}
   attackSound: {fileID: 0}
   healthBarPrefab: {fileID: 5958667905632117616, guid: de011bde56c58fb488a74b2670eaec75, type: 3}

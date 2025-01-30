@@ -786,8 +786,8 @@ MonoBehaviour:
   poisonInterval: 1
   isPoisoned: 0
   poisonSlowEffect: 0.5
-  attackEffectPrefab: {fileID: 0}
-  effectSpawnPoint: {fileID: 0}
+  attackEffectPrefab: {fileID: 5880797563127281583, guid: 265d3a5ba69981a4698ceabcedf368b0, type: 3}
+  effectSpawnPoint: {fileID: 8492238497303166143}
   attackSound: {fileID: 0}
   dashDistance: 3
   dashDuration: 0.3

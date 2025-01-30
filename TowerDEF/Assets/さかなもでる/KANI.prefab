@@ -847,7 +847,7 @@ MonoBehaviour:
   attackCooldown: 1.5
   gm: {fileID: 0}
   healthBarPrefab: {fileID: 5958667905632117616, guid: de011bde56c58fb488a74b2670eaec75, type: 3}
-  attackEffectPrefab: {fileID: 0}
+  attackEffectPrefab: {fileID: 5880797563127281583, guid: 265d3a5ba69981a4698ceabcedf368b0, type: 3}
   effectSpawnPoint: {fileID: 3240492748202639445}
   attackSound: {fileID: 0}
 --- !u!1 &3186705177753826347

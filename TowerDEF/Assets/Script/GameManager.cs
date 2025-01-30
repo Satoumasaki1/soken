@@ -20,6 +20,7 @@ public class GameManager : MonoBehaviour
     public Text waveText; // ウェーブ情報のテキスト
     public int currentWave = 0; // 現在のウェーブ数
     private float waveTimer; // ウェーブのカウントダウンタイマー
+    private int finalDay = 52; // ゲームクリアとなる最終日
 
     public bool isPaused = false; // ゲームが一時停止中かどうかを示すフラグ
 
@@ -140,8 +141,21 @@ public class GameManager : MonoBehaviour
             Debug.Log("敵が攻めてくる日です: Day " + currentDay);
         }
         waveText.text = currentWave.ToString() + "タイド";
+
+        // 52日目が終了したらゲームクリア処理を実行
+        if (currentWave >= finalDay)
+        {
+            GameClear();
+        }
+
     }
 
+    // ゲームクリア処理
+    private void GameClear()
+    {
+        Debug.Log("Game Clear!");
+        SceneManager.LoadScene("Clear Scene"); // クリアシーンへ遷移
+    }
     // 一時停止と再開を切り替えるメソッド
     public void TogglePause()
     {
